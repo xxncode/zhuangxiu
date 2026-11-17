@@ -110,48 +110,92 @@ footer a{color:var(--accent-ink)}
 <div id="modal" hidden></div>
 
 <script>
-const SRC={1:{n:"sasa的装修日记",u:"https://www.xiaohongshu.com/explore/6ae29358000000003003fe64?xsec_token=CBAMfBL4WtJoxtGnk6Nzhu99MrTtWqSsIsZTq1e1rEVT8=&xsec_source=app_share"},
-           2:{n:"小水的装修日记",u:"https://www.xiaohongshu.com/explore/6ae3119a000000002c002dfd?xsec_token=CBx2mo4axgFeslmeVuwwLVIL8s7buo-LfUkX5TDFQnyEU=&xsec_source=app_share"}};
+const SRC={
+ 1:{n:"sasa的装修日记",p:"小红书",u:"https://www.xiaohongshu.com/explore/6ae29358000000003003fe64?xsec_token=CBAMfBL4WtJoxtGnk6Nzhu99MrTtWqSsIsZTq1e1rEVT8=&xsec_source=app_share"},
+ 2:{n:"小水的装修日记",p:"小红书",u:"https://www.xiaohongshu.com/explore/6ae3119a000000002c002dfd?xsec_token=CBx2mo4axgFeslmeVuwwLVIL8s7buo-LfUkX5TDFQnyEU=&xsec_source=app_share"},
+ 3:{n:"梁工不爱装修《贴砖前必须确定这几件事》",p:"公众号",u:"https://mp.weixin.qq.com/s/LIRj5zN6yxnSxYL2NbdGlg"},
+ 4:{n:"《水电改造没盯紧，入住后全是不方便》",p:"公众号",u:"https://mp.weixin.qq.com/s/-5NToXP4iCmWYv0Ww8kzDA"},
+ 5:{n:"《装修合同这三句话必须删掉》",p:"公众号",u:"https://mp.weixin.qq.com/s/z1jhD-vh-ci3AILo7kdPew"},
+ 6:{n:"狐说家装《装修施工增项防坑清单》",p:"公众号",u:"https://mp.weixin.qq.com/s/AIt_aKII816n5Hc4k4LFIg"},
+ 7:{n:"《封阳台玻璃别乱选》",p:"公众号",u:"https://mp.weixin.qq.com/s/hsT6V_vDLHR7c5gF6iHfqA"},
+ 8:{n:"《全屋WiFi怎么做》",p:"公众号",u:"https://mp.weixin.qq.com/s/KlI5IV4xiZJjjRjYZHkfig"},
+ 9:{n:"《水电验收14大核心标准》",p:"公众号",u:"https://mp.weixin.qq.com/s/UfxN_sS9N9O1nfyLhoZxqg"},
+ 10:{n:"《厨房、卫生间防水施工流程》",p:"公众号",u:"https://mp.weixin.qq.com/s/mauvBvETv5YebUIuIv5t0w"},
+ 11:{n:"《家里这4个地方不装止逆阀》",p:"公众号",u:"https://mp.weixin.qq.com/s/p7nPQOwMHy9KNx47tvLY2A"},
+ 12:{n:"装修智商税粉碎机《这18件家电，开工前必须定方案》",p:"公众号",u:"https://mp.weixin.qq.com/s/mTss4Aq5vKnORxCdKac3fg"},
+ 13:{n:"《水电隐蔽工程这8张照片》",p:"公众号",u:"https://mp.weixin.qq.com/s/JdVb0VuJI63UTLdyCUcnFw"},
+};
 const TAG={good:"推荐",warn:"看情况",bad:"不建议"};
 const NOW="shuidian";
+// bar:false = 不进顶部进度条
 const STAGES=[
   {id:"sheji",name:"设计",show:false},
+  {id:"hetong",name:"合同",bar:false,desc:"开工前签，写死了才不会被加钱"},
   {id:"shuidian",name:"水电",cover:"dock",desc:"水管电线埋进墙里地下，定错了只能砸墙"},
-  {id:"niwa",name:"泥瓦",desc:"铺地面、贴瓷砖"},
+  {id:"yanshou",name:"水电验收",bar:false,cover:"pressure",desc:"封槽之前，这几样一定要查、要拍"},
+  {id:"niwa",name:"泥瓦",desc:"防水、铺地面、贴瓷砖"},
   {id:"mugong",name:"木工·柜子",desc:"吊顶和定制柜"},
   {id:"youqi",name:"油漆·安装",desc:"刷墙、装踢脚线"},
-  {id:"menchuang",name:"门窗",desc:"封窗和窗户配件"},
-  {id:"jiadian",name:"家电",desc:"大多要在水电时就留好水和电"},
+  {id:"menchuang",name:"门窗",desc:"封窗、阳台玻璃和窗户配件"},
+  {id:"jiadian",name:"家电",bar:false,cover:"fridge",desc:"买不买另说，位置和型号要在水电前定"},
   {id:"ruanzhuang",name:"软装·家具",desc:"窗帘和家具"},
 ];
 const AVOID={id:"avoid",name:"先别照做",desc:"网上流行，但说法有问题"};
+// key:2 = 首页「最要紧」那排；key:1 = 卡片上标 ⚡
 const ITEMS=[
-  {s:"shuidian",img:"wallpipe",t:"洗脸盆下水走墙里",tag:"good",key:1,src:2,why:"下水管从墙里出来，盆下面空着，好打扫，扫地机也能进去。",more:"要在水电时预埋，以后想改只能砸墙。"},
-  {s:"shuidian",img:"wires",t:"强电弱电分开走",tag:"good",key:1,src:1,why:"插座、灯的电线和网线、电视线分开走管，隔开距离。",more:"交叉的地方要垂直交叉，验收时重点看这里。"},
-  {s:"shuidian",img:"dock",t:"给扫地机留个位置",tag:"warn",key:1,src:2,why:"留插座、进水、排水，底座自己加水、倒脏水。",more:"先选好买哪款，再按它的尺寸留位置。也有人觉得扫地机拖不干净，见「先别照做」。"},
-  {s:"niwa",img:"tongpu",t:"全屋地面一样平",tag:"warn",key:1,src:2,why:"不做门槛和高低差，不藏灰，扫地机哪里都能去。",more:"卫生间没有门槛石挡水，要靠地面下沉和长条地漏，开工前问清师傅。"},
-  {s:"niwa",img:"rail",t:"推拉门不做地轨",tag:"good",src:2,why:"地轨缝里最藏灰，扫地机也会卡住。",more:"可以用吊轨推拉门，地上没有轨道。"},
-  {s:"niwa",img:"lamao",t:"贴砖前墙面拉毛",tag:"good",src:1,why:"把墙面滚粗糙，瓷砖粘得牢，以后不容易掉。",more:"大块瓷砖还要用瓷砖胶。"},
-  {s:"mugong",img:"simple-ceiling",t:"吊顶少做造型",tag:"good",src:2,why:"不做线条和雕花，凹凸少就不积灰。"},
-  {s:"mugong",img:"plain-cab",t:"柜门全封闭",tag:"good",src:2,why:"不做开放格，不用玻璃门，柜子不积灰。"},
-  {s:"mugong",img:"counter",t:"厨房台面什么都不放",tag:"good",src:2,why:"东西都收进柜子，做完饭一擦就干净。"},
-  {s:"mugong",img:"basket",t:"调料放抽屉拉篮",tag:"good",src:2,why:"常用的放灶台下的抽屉，不常用的放吊柜拉篮。"},
-  {s:"mugong",img:"wardrobe",t:"衣柜全做成挂的",tag:"warn",src:2,why:"衣服都挂起来，不用叠，一眼能看到。",more:"挂着比叠着占地方，衣柜要够大。"},
-  {s:"youqi",img:"paint",t:"乳胶漆先试一小块",tag:"good",src:1,why:"色卡和刷上墙的颜色常常不一样，满意了再刷整面。"},
-  {s:"youqi",img:"skirting",t:"超薄金属踢脚线",tag:"good",src:1,why:"顶上很窄，不积灰，好擦。"},
-  {s:"menchuang",img:"slope",t:"窗外做防水斜坡",tag:"warn",src:1,why:"雨水顺着坡流走，不往屋里渗。",more:"要用实心的，金属的下雨啪啪响；要用螺丝固定牢。"},
-  {s:"menchuang",img:"auto-window",t:"自动开窗器",tag:"warn",key:1,src:2,why:"下雨天自动关窗，不用爬上去关。",more:"窗边要在水电时留插座。先问清窗户能不能装。"},
-  {s:"jiadian",img:"dishwasher",t:"洗碗机",tag:"good",key:1,src:2,why:"少洗碗。",more:"放在橱柜里，水电时留好进水、排水和插座，柜子尺寸一起定。"},
-  {s:"jiadian",img:"oven",t:"蒸烤一体机",tag:"good",key:1,src:2,why:"一台顶蒸箱加烤箱，少占一个柜位。",more:"嵌在柜子里，水电时留好插座，功率大的问电工要不要单独一路电。"},
-  {s:"jiadian",img:"washer",t:"洗衣机 + 烘干机",tag:"good",key:1,src:2,why:"昆山梅雨季衣服晾不干，烘干机很有用。",more:"留两个插座和上下水。有人还在卫生间墙上挂一台洗内衣的小洗衣机。"},
-  {s:"jiadian",img:"water",t:"直饮机",tag:"warn",key:1,src:2,why:"随时有热水、凉水，不用烧水。",more:"要留进水和插座。装不装看家里喝水习惯。"},
-  {s:"jiadian",img:"window-bot",t:"擦窗机器人",tag:"warn",src:2,why:"吸在玻璃上自己擦，不用请人擦窗。"},
-  {s:"ruanzhuang",img:"curtain",t:"窗帘离地 10 cm",tag:"good",src:2,why:"下摆不拖地不脏，也不挡扫地机。"},
-  {s:"ruanzhuang",img:"floor-sit",t:"家具做到贴地",tag:"good",src:2,why:"底下没有缝，不用钻进去扫。"},
-  {s:"ruanzhuang",img:"furn-lift",t:"或者离地 10 cm",tag:"good",src:2,why:"扫地机能钻进去扫。",more:"买扫地机前量一下它有多高。"},
-  {s:"avoid",img:"foil",t:"电线交叉处包锡箔纸",tag:"bad",src:1,why:"视频说包了网速变快，这不对。锡箔纸不接地线起不了作用，网线本身就抗干扰。",more:"按「强电弱电分开走」做就够了。"},
-  {s:"avoid",img:"ceiling",t:"吊顶塞隔音棉防楼上吵",tag:"bad",src:1,why:"楼上的脚步声大多从楼板和墙里传下来，只塞吊顶效果有限。",more:"真要做，一定选防火的岩棉或玻璃棉。"},
-  {s:"avoid",img:"rail",t:"有扫地机就不用打扫",tag:"warn",src:2,why:"很多人说拖不干净，两三天又脏，还要常清理机器。",more:"也有人觉得两周请一次保洁、再买台吸尘器更省事。到买家电时再定。"},
+  {s:"hetong",img:"contract",t:"这 3 句话要删掉",tag:"good",key:2,src:[5,6],why:"合同里的「按实结算」「同档次品牌」「工期顺延」，签字前划掉。",more:"改成总价包干、写死品牌型号规格、延期一天赔多少钱。垃圾清运、开孔、灯具安装、上楼搬运、完工保洁也写进去。尾款留 5%，入住 3 个月后再付。"},
+
+  {s:"shuidian",img:"wallpipe",t:"洗脸盆下水走墙里",tag:"good",key:2,src:[2,13],why:"下水管从墙里出来，盆下面空着，好打扫，扫地机也能进去。",more:"要在水电时预埋，以后想改只能砸墙。"},
+  {s:"shuidian",img:"pipe-top",t:"卫生间水管走顶",tag:"good",key:2,src:[4],why:"水管从吊顶上走，不埋在地下。漏水第一时间能看见，修的时候也不用砸地砖。"},
+  {s:"shuidian",img:"fridge",t:"插座别藏在家电后面",tag:"good",key:2,src:[4,12],why:"冰箱、洗碗机、洗衣机、电视的插座，留在旁边柜子里或上下方。",more:"沙发、柜子一进来就会挡住后面的插座。每个房间要几个插座、装多高，先自己列好清单交给师傅。"},
+  {s:"shuidian",img:"circuit",t:"大功率电器单独一路",tag:"good",key:2,src:[4,9,12],why:"空调、蒸烤箱、电热水器各走一路电，不容易跳闸。",more:"这类用 4 平方的电线，普通插座用 2.5 平方。"},
+  {s:"shuidian",img:"valve",t:"装 4 个止逆阀",tag:"good",key:2,src:[11],why:"马桶进水、厨房烟道、卫生间排风口各装一个，洗衣机换自动止水的角阀。",more:"防马桶水倒灌进自来水、防邻居的油烟和臭味倒灌、防水管崩开淹水。一共约一百元。烟道和排风口那两个要在吊顶前装。"},
+  {s:"shuidian",img:"wire-sep",t:"强电弱电分开走",tag:"good",key:1,src:[4,9],why:"插座、灯的电线和网线、电视线不走同一个槽，隔开约 30 cm，交叉的地方垂直交叉。",more:"网上说交叉处包锡箔纸能让网速变快，这个说法不对，见「先别照做」。"},
+  {s:"shuidian",img:"vslot",t:"墙上只开竖槽",tag:"good",src:[4,9,13],why:"横着开槽伤墙体。实在要开横槽要短，承重墙不能乱开。"},
+  {s:"shuidian",img:"hotcold",t:"冷热水口左热右冷",tag:"good",src:[4,9,13],why:"两个出水口间距 15 cm、保持水平，以后龙头和花洒才装得上。"},
+  {s:"shuidian",img:"dock",t:"给扫地机留个位置",tag:"warn",key:1,src:[2,4,12],why:"留插座、进水、排水，底座会自己加水、倒脏水。",more:"先选好买哪款，再按它的尺寸留位置。也有人觉得扫地机拖不干净，见「先别照做」。"},
+
+  {s:"yanshou",img:"photo-check",t:"封槽前每面墙拍照",tag:"good",key:2,src:[13,4],why:"墙一封就看不见管线了。每面墙、每个插座底盒都拍下来，再录一段走一圈的视频。",more:"以后打孔挂画、装电视不会打穿水管。完工再让师傅交一份水电走向图。"},
+  {s:"yanshou",img:"pressure",t:"水管打压测试",tag:"good",key:2,src:[4,13],why:"水管装好后加压到 0.8–1.0 MPa，至少 30 分钟不掉压才算合格。",more:"让师傅按规范做，拍下压力表留证据。"},
+  {s:"yanshou",img:"bishui",t:"防水做闭水试验",tag:"good",key:1,src:[4,6,10],why:"卫生间放水泡 48 小时，去楼下邻居家看漏不漏，不漏才能贴砖。",more:"防水要刷两遍。淋浴区墙面至少刷到 1.8 m，最好 2 m。"},
+
+  {s:"niwa",img:"tongpu",t:"全屋地面一样平",tag:"warn",key:1,src:[2,3],why:"不做门槛和高低差，不藏灰，扫地机哪里都能去。",more:"卫生间没有门槛石挡水，要靠地面下沉和长条地漏，开工前问清师傅。"},
+  {s:"niwa",img:"drain",t:"地漏周围这样切砖",tag:"good",src:[3,10],why:"地面向地漏找坡，地漏周围切成回字形，排水顺。",more:"地漏别对着门口、别藏在柜子底下。贴完砖要检查空鼓。"},
+  {s:"niwa",img:"rail",t:"推拉门不做地轨",tag:"good",src:[2],why:"地轨缝里最藏灰，扫地机也会卡住。",more:"可以用吊轨推拉门，地上没有轨道。"},
+  {s:"niwa",img:"lamao",t:"贴砖前墙面拉毛",tag:"good",src:[1,3],why:"把墙面滚粗糙，瓷砖粘得牢，以后不容易掉。",more:"大块瓷砖还要用瓷砖胶。"},
+
+  {s:"mugong",img:"simple-ceiling",t:"吊顶少做造型",tag:"good",src:[2],why:"不做线条和雕花，凹凸少就不积灰。"},
+  {s:"mugong",img:"plain-cab",t:"柜门全封闭",tag:"good",src:[2],why:"不做开放格，不用玻璃门，柜子不积灰。"},
+  {s:"mugong",img:"counter",t:"厨房台面什么都不放",tag:"good",src:[2],why:"东西都收进柜子，做完饭一擦就干净。"},
+  {s:"mugong",img:"basket",t:"调料放抽屉拉篮",tag:"good",src:[2],why:"常用的放灶台下的抽屉，不常用的放吊柜拉篮。"},
+  {s:"mugong",img:"wardrobe",t:"衣柜全做成挂的",tag:"warn",src:[2],why:"衣服都挂起来，不用叠，一眼能看到。",more:"挂着比叠着占地方，衣柜要够大。"},
+
+  {s:"youqi",img:"paint",t:"乳胶漆先试一小块",tag:"good",src:[1],why:"色卡和刷上墙的颜色常常不一样，满意了再刷整面。"},
+  {s:"youqi",img:"skirting",t:"超薄金属踢脚线",tag:"good",src:[1],why:"顶上很窄，不积灰，好擦。"},
+
+  {s:"menchuang",img:"glass",t:"阳台玻璃怎么选",tag:"warn",src:[7],why:"普通家庭选合格的中空玻璃就够。西晒的窗才值得加 Low-e，落地大窗用夹胶或超白。",more:"三玻两腔是给北方寒冷地区的，昆山一般用不上。"},
+  {s:"menchuang",img:"slope",t:"窗外做防水斜坡",tag:"warn",src:[1],why:"雨水顺着坡流走，不往屋里渗。",more:"要用实心的，金属的下雨啪啪响；要用螺丝固定牢。"},
+  {s:"menchuang",img:"auto-window",t:"自动开窗器",tag:"warn",key:1,src:[2],why:"下雨天自动关窗，不用爬上去关。",more:"窗边要在水电时留插座。先问清窗户能不能装。"},
+
+  {s:"jiadian",img:"heater",t:"热水器选零冷水",tag:"warn",key:2,src:[12,4],why:"一开水龙头就出热水，不用先放一桶冷水。",more:"要零冷水，水电时就得多埋一根回水管。燃气热水器要先打好排烟孔。"},
+  {s:"jiadian",img:"tv",t:"电视墙埋一根管",tag:"good",key:2,src:[4,12],why:"电视后面预埋一根粗管走线，装好以后下面不吊一堆线。",more:"插座留在电视左右下方。电视尺寸按坐的距离选，55 寸大约坐 1.9–3.1 m 远。"},
+  {s:"jiadian",img:"wifi",t:"全屋 WiFi 先布网线",tag:"good",key:2,src:[4,8,12],why:"弱电箱做大一点，到客厅布 3 根网线，到每个房间各 1 根。",more:"网线用超六类（CAT6A）。每个房间装 WiFi 面板或路由器，全屋信号都满格。"},
+  {s:"jiadian",img:"aircon",t:"空调先定类型",tag:"good",key:1,src:[4,12],why:"挂机、柜机、风管机还是中央空调，先定。风管机和中央空调要配合吊顶，还要留排水管。",more:"出风口别对着床和沙发。"},
+  {s:"jiadian",img:"dishwasher",t:"洗碗机",tag:"good",key:1,src:[2,4,12],why:"少洗碗。",more:"放在水槽旁边的柜子里，留好进水、排水，插座留在隔壁柜。"},
+  {s:"jiadian",img:"oven",t:"蒸烤一体机",tag:"good",key:1,src:[2,4,12],why:"一台顶蒸箱加烤箱，少占一个柜位。",more:"功率大，要单独一路电。插座留在上方或下方，柜子背后少做背板好散热。"},
+  {s:"jiadian",img:"washer",t:"洗衣机 + 烘干机",tag:"good",key:1,src:[2,4,12],why:"昆山梅雨季衣服晾不干，烘干机很有用。",more:"留两个插座和上下水，先定叠放还是并排。有人还在墙上挂一台洗内衣的小洗衣机。"},
+  {s:"jiadian",img:"water",t:"净水和直饮机",tag:"warn",key:1,src:[2,4,12,13],why:"随时有干净的热水、凉水。",more:"先定装哪几样：前置过滤、净水机、软水机、直饮机。水槽下面留插座和水口。"},
+  {s:"jiadian",img:"toilet",t:"智能马桶留插座",tag:"good",key:1,src:[4,12],why:"马桶侧边离地约 30 cm，留一个防水插座。"},
+  {s:"jiadian",img:"towel",t:"电热毛巾架留电",tag:"good",key:1,src:[4,12],why:"卫生间墙上预留电源，冬天毛巾是热的。",more:"最好单独一路线。"},
+  {s:"jiadian",img:"window-bot",t:"擦窗机器人",tag:"warn",src:[2],why:"吸在玻璃上自己擦，不用请人擦窗。"},
+
+  {s:"ruanzhuang",img:"curtain",t:"窗帘离地 10 cm",tag:"good",src:[2,6],why:"下摆不拖地不脏，也不挡扫地机。",more:"窗帘褶皱做 1.8–2 倍，提前写清楚。"},
+  {s:"ruanzhuang",img:"floor-sit",t:"家具做到贴地",tag:"good",src:[2],why:"底下没有缝，不用钻进去扫。"},
+  {s:"ruanzhuang",img:"furn-lift",t:"或者离地 10 cm",tag:"good",src:[2],why:"扫地机能钻进去扫。",more:"买扫地机前量一下它有多高。"},
+
+  {s:"avoid",img:"foil",t:"包锡箔纸能提网速",tag:"bad",src:[1,4,9,13],why:"好几篇都说交叉处要包锡箔纸。但锡箔纸不接地，起不了多少屏蔽作用；网线本身就抗干扰。",more:"包了也没坏处，几块钱，师傅要包就让他包。真正有用的是分开走、隔开距离、垂直交叉。"},
+  {s:"avoid",img:"ceiling",t:"吊顶塞棉防楼上吵",tag:"bad",src:[1],why:"楼上的脚步声大多从楼板和墙里传下来，只塞吊顶效果有限。",more:"下水管包隔音棉是另一回事，那个有用，能挡冲水声。"},
+  {s:"avoid",img:"rail",t:"有扫地机就不用扫",tag:"warn",src:[2],why:"很多人说拖不干净，两三天又脏，还要常清理机器。",more:"也有人觉得两周请一次保洁、再买台吸尘器更省事。到买家电时再定。"},
 ];
 const byStage=id=>ITEMS.filter(i=>i.s===id);
 const app=document.getElementById("app"), modal=document.getElementById("modal");
@@ -160,21 +204,21 @@ const img=n=>`img/${n}.jpg`;
 
 function home(){
   const nowIdx=STAGES.findIndex(s=>s.id===NOW);
-  const keys=ITEMS.filter(i=>i.key);
+  const keys=ITEMS.filter(i=>i.key===2);
   app.innerHTML=`
   <header class="hero">
     <h1>昆山新家装修参考</h1>
     <p class="sub">小年从小红书收集整理 · 更新于 11 月 17 日</p>
     <div class="steps" aria-label="装修进度">
-      ${STAGES.map((s,i)=>`<div class="step ${i<nowIdx?"done":i===nowIdx?"now":""}"><i></i>${s.id==="mugong"?"木工":s.id==="youqi"?"油漆":s.id==="ruanzhuang"?"软装":s.name}${i===nowIdx?" · 现在":""}</div>`).filter((_,i)=>STAGES[i].id!=="jiadian").join("")}
+      ${STAGES.map((s,i)=>`<div class="step ${i<nowIdx?"done":i===nowIdx?"now":""}"><i></i>${s.id==="mugong"?"木工":s.id==="youqi"?"油漆":s.id==="ruanzhuang"?"软装":s.name}${i===nowIdx?" · 现在":""}</div>`).filter((_,i)=>STAGES[i].bar!==false&&STAGES[i].show!==false||STAGES[i].id==="sheji").join("")}
     </div>
   </header>
 
   <section class="urgent">
     <div class="urgent-head">
       <span class="k">⚡ 现在最要紧</span>
-      <h2>水电开工前要定的 ${keys.length} 件事</h2>
-      <p>这些都要提前埋管、留插座，开工后再改就得砸墙。左右滑动，点开看图。</p>
+      <h2>水电阶段最要紧的 ${keys.length} 件事</h2>
+      <p>开工前要定好、施工时要盯着，错过了就得砸墙。左右滑动，点开看图。各阶段里标 ⚡ 的也要在水电前定。</p>
     </div>
     <div class="strip">
       ${keys.map(i=>`<button class="mini" data-i="${ITEMS.indexOf(i)}"><img src="${img(i.img)}" alt="" loading="lazy"><span>${esc(i.t)}</span></button>`).join("")}
@@ -207,7 +251,7 @@ function stagePage(id){
 }
 
 function foot(){
-  return `<footer><p>图和做法来自小红书：<a href="${SRC[1].u}" target="_blank" rel="noopener">${SRC[1].n}</a>、<a href="${SRC[2].u}" target="_blank" rel="noopener">${SRC[2].n}</a>。</p><p>「推荐 / 看情况 / 不建议」是小年的判断，具体以施工师傅的意见为准。</p></footer>`;
+  return `<footer><p>内容整理自 ${Object.keys(SRC).length} 篇小红书和公众号：</p><p>${Object.values(SRC).map(x=>`<a href="${x.u}" target="_blank" rel="noopener">${esc(x.n)}</a>`).join("、")}</p><p>「推荐 / 看情况 / 不建议」是小年的判断，具体以施工师傅的意见为准。</p></footer>`;
 }
 
 function open(n){
@@ -220,7 +264,7 @@ function open(n){
       <h3>${esc(i.t)}</h3>
       <p class="why">${esc(i.why)}</p>
       ${i.more?`<p>${esc(i.more)}</p>`:""}
-      <p class="src">来自小红书 · ${SRC[i.src].n}</p>
+      <p class="src">${i.src.length>1?i.src.length+" 篇都提到 · ":""}来自 ${i.src.map(k=>SRC[k].p+" · "+SRC[k].n).join("、")}</p>
     </div></div>
     <button class="close" data-close aria-label="关闭">×</button></div>`;
   document.body.style.overflow="hidden";
