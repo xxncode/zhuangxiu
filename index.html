@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<title>昆山新家装修参考</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta charset="utf-8">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 版式：首页 = 标题 + 进度 + 「现在最要紧」横滑图卡 + 按装修顺序的阶段方块；点阶段进分页看图卡；点图卡弹出大图和说明 */
+:root{
+  --bg:#FAF8F3;         /* 暖白 */
+  --card:#FFFFFF;
+  --ink:#2B2723;
+  --muted:#7A7068;
+  --line:#ECE5DB;
+  --accent:#D97757;     /* 暖橙 */
+  --accent-ink:#B4532F;
+  --accent-soft:#FBEBE2;
+  --good:#3F8A5A; --good-soft:#E6F3EA;
+  --warn:#A86A12; --warn-soft:#FCF0D9;
+  --bad:#BC4A33;  --bad-soft:#FBE4DE;
+  --shadow:0 1px 2px rgba(80,50,20,.06),0 6px 18px rgba(80,50,20,.06);
+  --serif:"Noto Serif SC","Songti SC","STSong",serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;
+}
+/* 只做暖白一种配色（他点名要白橙），不跟随深色模式 */
+:root{color-scheme:light}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px;display:flex;flex-direction:column;gap:32px}
+h1,h2{font-family:var(--serif);margin:0;line-height:1.3;text-wrap:balance}
+h1{font-size:30px;font-weight:800}
+h2{font-size:21px;font-weight:800}
+p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* 首页头 */
+.hero{display:flex;flex-direction:column;gap:14px}
+.hero .sub{color:var(--muted);font-size:14px}
+.steps{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.steps::-webkit-scrollbar{display:none}
+.step{flex:1 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;color:var(--muted);min-width:52px}
+.step i{display:block;width:100%;height:6px;border-radius:3px;background:var(--line)}
+.step.now{color:var(--accent-ink);font-weight:700}
+.step.now i{background:var(--accent)}
+.step.done i{background:var(--muted);opacity:.45}
+
+/* 现在最要紧 */
+.urgent{background:var(--accent-soft);border-radius:20px;padding:20px 0 20px 18px;display:flex;flex-direction:column;gap:14px}
+.urgent-head{display:flex;flex-direction:column;gap:4px;padding-right:18px}
+.urgent-head .k{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--accent-ink)}
+.urgent-head p{font-size:14px;color:var(--muted)}
+.strip{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-right:18px;padding-bottom:4px;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.mini{flex:0 0 150px;scroll-snap-align:start;border:0;padding:0;background:var(--card);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;text-align:left;display:flex;flex-direction:column}
+.mini img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
+.mini span{padding:8px 10px 10px;font-size:14px;font-weight:600;line-height:1.4}
+
+/* 阶段方块 */
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.sec-head small{color:var(--muted);font-size:13px}
+.stages{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:12px}
+.stage{position:relative;border:0;padding:0;border-radius:16px;overflow:hidden;cursor:pointer;background:var(--card);box-shadow:var(--shadow);text-align:left;display:flex;flex-direction:column}
+.stage img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.stage .t{padding:10px 12px 12px;display:flex;flex-direction:column;gap:2px}
+.stage b{font-family:var(--serif);font-size:18px}
+.stage em{font-style:normal;font-size:13px;color:var(--muted)}
+.badge{position:absolute;top:8px;left:8px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--accent);color:#fff}
+.stage.avoid{background:var(--bad-soft)}
+.stage.avoid b{color:var(--bad)}
+
+/* 分页 */
+.back{align-self:flex-start;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px 6px 10px;cursor:pointer;font-size:14px;color:var(--accent-ink)}
+.page-head{display:flex;flex-direction:column;gap:6px}
+.page-head p{color:var(--muted);font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:12px}
+.card{border:0;padding:0;background:var(--card);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;text-align:left;display:flex;flex-direction:column;position:relative}
+.card img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
+.card .t{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px}
+.card b{font-size:15px;line-height:1.4}
+.card .flash{position:absolute;top:8px;left:8px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--accent);color:#fff}
+.chip{align-self:flex-start;font-size:12px;font-weight:700;border-radius:6px;padding:1px 8px}
+.good{background:var(--good-soft);color:var(--good)}
+.warn{background:var(--warn-soft);color:var(--warn)}
+.bad{background:var(--bad-soft);color:var(--bad)}
+
+.legend{display:flex;flex-wrap:wrap;gap:8px 12px;font-size:13px;color:var(--muted);align-items:center}
+footer{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+footer a{color:var(--accent-ink)}
+
+/* 弹出层 */
+.sheet-bg{position:fixed;inset:0;background:rgba(30,20,10,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20;padding-top:env(safe-area-inset-top,0px)}
+.sheet{background:var(--card);width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border-radius:20px 20px 0 0;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (min-width:700px){.sheet-bg{align-items:center}.sheet{border-radius:20px}}
+.sheet img{width:100%;aspect-ratio:6/5;object-fit:cover;display:block}
+.sheet .body{padding:18px 20px 24px;display:flex;flex-direction:column;gap:12px}
+.sheet h3{font-family:var(--serif);font-size:22px;margin:0;line-height:1.35}
+.sheet .tags{display:flex;gap:8px;flex-wrap:wrap}
+.sheet .tags .chip{font-size:13px;padding:2px 10px}
+.flashtag{background:var(--accent-soft);color:var(--accent-ink)}
+.sheet .why{font-size:17px}
+.sheet .src{font-size:13px;color:var(--muted)}
+.close{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));width:40px;height:40px;border-radius:50%;border:0;background:var(--card);box-shadow:var(--shadow);font-size:22px;line-height:1;cursor:pointer}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+</head><body>
+
+<div class="wrap" id="app"></div>
+<div id="modal" hidden></div>
+
+<script>
+const SRC={1:{n:"sasa的装修日记",u:"https://www.xiaohongshu.com/explore/6ae29358000000003003fe64?xsec_token=CBAMfBL4WtJoxtGnk6Nzhu99MrTtWqSsIsZTq1e1rEVT8=&xsec_source=app_share"},
+           2:{n:"小水的装修日记",u:"https://www.xiaohongshu.com/explore/6ae3119a000000002c002dfd?xsec_token=CBx2mo4axgFeslmeVuwwLVIL8s7buo-LfUkX5TDFQnyEU=&xsec_source=app_share"}};
+const TAG={good:"推荐",warn:"看情况",bad:"不建议"};
+const NOW="shuidian";
+const STAGES=[
+  {id:"sheji",name:"设计",show:false},
+  {id:"shuidian",name:"水电",cover:"dock",desc:"水管电线埋进墙里地下，定错了只能砸墙"},
+  {id:"niwa",name:"泥瓦",desc:"铺地面、贴瓷砖"},
+  {id:"mugong",name:"木工·柜子",desc:"吊顶和定制柜"},
+  {id:"youqi",name:"油漆·安装",desc:"刷墙、装踢脚线"},
+  {id:"menchuang",name:"门窗",desc:"封窗和窗户配件"},
+  {id:"jiadian",name:"家电",desc:"大多要在水电时就留好水和电"},
+  {id:"ruanzhuang",name:"软装·家具",desc:"窗帘和家具"},
+];
+const AVOID={id:"avoid",name:"先别照做",desc:"网上流行，但说法有问题"};
+const ITEMS=[
+  {s:"shuidian",img:"wallpipe",t:"洗脸盆下水走墙里",tag:"good",key:1,src:2,why:"下水管从墙里出来，盆下面空着，好打扫，扫地机也能进去。",more:"要在水电时预埋，以后想改只能砸墙。"},
+  {s:"shuidian",img:"wires",t:"强电弱电分开走",tag:"good",key:1,src:1,why:"插座、灯的电线和网线、电视线分开走管，隔开距离。",more:"交叉的地方要垂直交叉，验收时重点看这里。"},
+  {s:"shuidian",img:"dock",t:"给扫地机留个位置",tag:"warn",key:1,src:2,why:"留插座、进水、排水，底座自己加水、倒脏水。",more:"先选好买哪款，再按它的尺寸留位置。也有人觉得扫地机拖不干净，见「先别照做」。"},
+  {s:"niwa",img:"tongpu",t:"全屋地面一样平",tag:"warn",key:1,src:2,why:"不做门槛和高低差，不藏灰，扫地机哪里都能去。",more:"卫生间没有门槛石挡水，要靠地面下沉和长条地漏，开工前问清师傅。"},
+  {s:"niwa",img:"rail",t:"推拉门不做地轨",tag:"good",src:2,why:"地轨缝里最藏灰，扫地机也会卡住。",more:"可以用吊轨推拉门，地上没有轨道。"},
+  {s:"niwa",img:"lamao",t:"贴砖前墙面拉毛",tag:"good",src:1,why:"把墙面滚粗糙，瓷砖粘得牢，以后不容易掉。",more:"大块瓷砖还要用瓷砖胶。"},
+  {s:"mugong",img:"simple-ceiling",t:"吊顶少做造型",tag:"good",src:2,why:"不做线条和雕花，凹凸少就不积灰。"},
+  {s:"mugong",img:"plain-cab",t:"柜门全封闭",tag:"good",src:2,why:"不做开放格，不用玻璃门，柜子不积灰。"},
+  {s:"mugong",img:"counter",t:"厨房台面什么都不放",tag:"good",src:2,why:"东西都收进柜子，做完饭一擦就干净。"},
+  {s:"mugong",img:"basket",t:"调料放抽屉拉篮",tag:"good",src:2,why:"常用的放灶台下的抽屉，不常用的放吊柜拉篮。"},
+  {s:"mugong",img:"wardrobe",t:"衣柜全做成挂的",tag:"warn",src:2,why:"衣服都挂起来，不用叠，一眼能看到。",more:"挂着比叠着占地方，衣柜要够大。"},
+  {s:"youqi",img:"paint",t:"乳胶漆先试一小块",tag:"good",src:1,why:"色卡和刷上墙的颜色常常不一样，满意了再刷整面。"},
+  {s:"youqi",img:"skirting",t:"超薄金属踢脚线",tag:"good",src:1,why:"顶上很窄，不积灰，好擦。"},
+  {s:"menchuang",img:"slope",t:"窗外做防水斜坡",tag:"warn",src:1,why:"雨水顺着坡流走，不往屋里渗。",more:"要用实心的，金属的下雨啪啪响；要用螺丝固定牢。"},
+  {s:"menchuang",img:"auto-window",t:"自动开窗器",tag:"warn",key:1,src:2,why:"下雨天自动关窗，不用爬上去关。",more:"窗边要在水电时留插座。先问清窗户能不能装。"},
+  {s:"jiadian",img:"dishwasher",t:"洗碗机",tag:"good",key:1,src:2,why:"少洗碗。",more:"放在橱柜里，水电时留好进水、排水和插座，柜子尺寸一起定。"},
+  {s:"jiadian",img:"oven",t:"蒸烤一体机",tag:"good",key:1,src:2,why:"一台顶蒸箱加烤箱，少占一个柜位。",more:"嵌在柜子里，水电时留好插座，功率大的问电工要不要单独一路电。"},
+  {s:"jiadian",img:"washer",t:"洗衣机 + 烘干机",tag:"good",key:1,src:2,why:"昆山梅雨季衣服晾不干，烘干机很有用。",more:"留两个插座和上下水。有人还在卫生间墙上挂一台洗内衣的小洗衣机。"},
+  {s:"jiadian",img:"water",t:"直饮机",tag:"warn",key:1,src:2,why:"随时有热水、凉水，不用烧水。",more:"要留进水和插座。装不装看家里喝水习惯。"},
+  {s:"jiadian",img:"window-bot",t:"擦窗机器人",tag:"warn",src:2,why:"吸在玻璃上自己擦，不用请人擦窗。"},
+  {s:"ruanzhuang",img:"curtain",t:"窗帘离地 10 cm",tag:"good",src:2,why:"下摆不拖地不脏，也不挡扫地机。"},
+  {s:"ruanzhuang",img:"floor-sit",t:"家具做到贴地",tag:"good",src:2,why:"底下没有缝，不用钻进去扫。"},
+  {s:"ruanzhuang",img:"furn-lift",t:"或者离地 10 cm",tag:"good",src:2,why:"扫地机能钻进去扫。",more:"买扫地机前量一下它有多高。"},
+  {s:"avoid",img:"foil",t:"电线交叉处包锡箔纸",tag:"bad",src:1,why:"视频说包了网速变快，这不对。锡箔纸不接地线起不了作用，网线本身就抗干扰。",more:"按「强电弱电分开走」做就够了。"},
+  {s:"avoid",img:"ceiling",t:"吊顶塞隔音棉防楼上吵",tag:"bad",src:1,why:"楼上的脚步声大多从楼板和墙里传下来，只塞吊顶效果有限。",more:"真要做，一定选防火的岩棉或玻璃棉。"},
+  {s:"avoid",img:"rail",t:"有扫地机就不用打扫",tag:"warn",src:2,why:"很多人说拖不干净，两三天又脏，还要常清理机器。",more:"也有人觉得两周请一次保洁、再买台吸尘器更省事。到买家电时再定。"},
+];
+const byStage=id=>ITEMS.filter(i=>i.s===id);
+const app=document.getElementById("app"), modal=document.getElementById("modal");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const img=n=>`img/${n}.jpg`;
+
+function home(){
+  const nowIdx=STAGES.findIndex(s=>s.id===NOW);
+  const keys=ITEMS.filter(i=>i.key);
+  app.innerHTML=`
+  <header class="hero">
+    <h1>昆山新家装修参考</h1>
+    <p class="sub">小年从小红书收集整理 · 更新于 11 月 17 日</p>
+    <div class="steps" aria-label="装修进度">
+      ${STAGES.map((s,i)=>`<div class="step ${i<nowIdx?"done":i===nowIdx?"now":""}"><i></i>${s.id==="mugong"?"木工":s.id==="youqi"?"油漆":s.id==="ruanzhuang"?"软装":s.name}${i===nowIdx?" · 现在":""}</div>`).filter((_,i)=>STAGES[i].id!=="jiadian").join("")}
+    </div>
+  </header>
+
+  <section class="urgent">
+    <div class="urgent-head">
+      <span class="k">⚡ 现在最要紧</span>
+      <h2>水电开工前要定的 ${keys.length} 件事</h2>
+      <p>这些都要提前埋管、留插座，开工后再改就得砸墙。左右滑动，点开看图。</p>
+    </div>
+    <div class="strip">
+      ${keys.map(i=>`<button class="mini" data-i="${ITEMS.indexOf(i)}"><img src="${img(i.img)}" alt="" loading="lazy"><span>${esc(i.t)}</span></button>`).join("")}
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <div class="sec-head"><h2>按装修顺序看</h2><small>点进去看图</small></div>
+    <div class="stages">
+      ${STAGES.filter(s=>s.show!==false).map(s=>{const it=byStage(s.id);return `<button class="stage" data-s="${s.id}">${s.id===NOW?'<span class="badge">进行中</span>':""}<img src="${img(s.cover||it[0].img)}" alt="" loading="lazy"><span class="t"><b>${esc(s.name)}</b><em>${it.length} 条</em></span></button>`}).join("")}
+      <button class="stage avoid" data-s="avoid"><img src="${img("foil")}" alt="" loading="lazy"><span class="t"><b>${AVOID.name}</b><em>${byStage("avoid").length} 条</em></span></button>
+    </div>
+  </section>
+  ${foot()}`;
+}
+
+function stagePage(id){
+  const s=id==="avoid"?AVOID:STAGES.find(x=>x.id===id);
+  if(!s){location.hash="";return}
+  const it=byStage(id);
+  app.innerHTML=`
+  <button class="back" data-back>‹ 返回首页</button>
+  <div class="page-head"><h1>${esc(s.name)}</h1><p>${esc(s.desc)}</p></div>
+  <div class="legend"><span><span class="chip good">推荐</span> 照做</span><span><span class="chip warn">看情况</span> 先确认</span><span><span class="chip bad">不建议</span> 有问题</span></div>
+  <div class="grid">
+    ${it.map(i=>`<button class="card" data-i="${ITEMS.indexOf(i)}">${i.key?'<span class="flash">⚡ 水电前定</span>':""}<img src="${img(i.img)}" alt="" loading="lazy"><span class="t"><b>${esc(i.t)}</b><span class="chip ${i.tag}">${TAG[i.tag]}</span></span></button>`).join("")}
+  </div>
+  ${foot()}`;
+  window.scrollTo(0,0);
+}
+
+function foot(){
+  return `<footer><p>图和做法来自小红书：<a href="${SRC[1].u}" target="_blank" rel="noopener">${SRC[1].n}</a>、<a href="${SRC[2].u}" target="_blank" rel="noopener">${SRC[2].n}</a>。</p><p>「推荐 / 看情况 / 不建议」是小年的判断，具体以施工师傅的意见为准。</p></footer>`;
+}
+
+function open(n){
+  const i=ITEMS[n];
+  modal.hidden=false;
+  modal.innerHTML=`<div class="sheet-bg" data-close><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(i.t)}">
+    <img src="${img(i.img)}" alt="">
+    <div class="body">
+      <div class="tags"><span class="chip ${i.tag}">${TAG[i.tag]}</span>${i.key?'<span class="chip flashtag">⚡ 水电开工前要定</span>':""}</div>
+      <h3>${esc(i.t)}</h3>
+      <p class="why">${esc(i.why)}</p>
+      ${i.more?`<p>${esc(i.more)}</p>`:""}
+      <p class="src">来自小红书 · ${SRC[i.src].n}</p>
+    </div></div>
+    <button class="close" data-close aria-label="关闭">×</button></div>`;
+  document.body.style.overflow="hidden";
+  modal.querySelector(".close").focus();
+}
+function close(){modal.hidden=true;modal.innerHTML="";document.body.style.overflow=""}
+
+document.addEventListener("click",e=>{
+  const c=e.target.closest("[data-close]");
+  if(c&&(e.target===c||c.classList.contains("close"))){close();return}
+  const card=e.target.closest("[data-i]"); if(card){open(+card.dataset.i);return}
+  const st=e.target.closest("[data-s]"); if(st){location.hash=st.dataset.s;return}
+  if(e.target.closest("[data-back]")){location.hash="";}
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!modal.hidden)close()});
+function route(){close();const h=location.hash.slice(1);h?stagePage(h):home()}
+window.addEventListener("hashchange",route);
+route();
+</script>
+
+</body></html>
