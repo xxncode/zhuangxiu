@@ -5,215 +5,346 @@
 <meta charset="utf-8">
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
-/* 版式：首页 = 进度 + 最要紧横滑 + 阶段方块；阶段页 = 骨架目录 + 按分支排图卡、文字卡、待收集；点卡片弹出「文章说 / 要注意 / 依据」 */
+/* 版式：整屋一张思维导图（他 11/18 选的 C）。左到右：装修 → 9 个阶段 → 每阶段几步 → 条目。点节点展开收起，拖动平移，双指或按钮缩放；点条目弹出「文章说 / 要注意 / 依据」 */
 :root{
-  --bg:#FAF8F3; --card:#FFFFFF; --ink:#2B2723; --muted:#7A7068; --line:#ECE5DB;
+  --bg:#FAF8F3; --card:#FFFFFF; --ink:#2B2723; --muted:#7A7068; --line:#E4DACD;
   --accent:#D97757; --accent-ink:#B4532F; --accent-soft:#FBEBE2;
   --good:#3F8A5A; --good-soft:#E6F3EA; --warn:#A86A12; --warn-soft:#FCF0D9;
   --bad:#BC4A33; --bad-soft:#FBE4DE; --pref:#6F665E; --pref-soft:#EFEAE3;
-  --shadow:0 1px 2px rgba(80,50,20,.06),0 6px 18px rgba(80,50,20,.06);
+  --shadow:0 1px 2px rgba(80,50,20,.07),0 4px 14px rgba(80,50,20,.07);
   --serif:"Noto Serif SC","Songti SC","STSong",serif;
   --sans:"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;
+  color-scheme:light; /* 只做暖白一种配色（他点名要白橙） */
 }
-/* 只做暖白一种配色（他点名要白橙），不跟随深色模式 */
-:root{color-scheme:light}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
-.wrap{max-width:960px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px;display:flex;flex-direction:column;gap:28px}
-h1,h2,h3{font-family:var(--serif);margin:0;line-height:1.3;text-wrap:balance}
-h1{font-size:30px;font-weight:800} h2{font-size:21px;font-weight:800} h3{font-size:18px;font-weight:800}
-p{margin:0} button{font:inherit;color:inherit}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;overflow:hidden}
+button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h3{font-family:var(--serif);margin:0;line-height:1.3}
 
-.hero{display:flex;flex-direction:column;gap:14px}
-.sub{color:var(--muted);font-size:14px}
-.steps{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
-.steps::-webkit-scrollbar{display:none}
-.step{flex:1 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;color:var(--muted);min-width:48px}
-.step i{display:block;width:100%;height:6px;border-radius:3px;background:var(--line)}
-.step.now{color:var(--accent-ink);font-weight:700}.step.now i{background:var(--accent)}
+/* 顶栏 */
+.bar{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;
+  padding:calc(10px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px));
+  background:linear-gradient(var(--bg) 70%,rgba(250,248,243,0))}
+.bar h1{font-size:19px;font-weight:800;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar h1 small{display:block;font-family:var(--sans);font-size:11px;font-weight:400;color:var(--muted)}
+.pill{border:0;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:var(--shadow)}
+.pill.hot{background:var(--accent);color:#fff}
+.pill.plain{background:var(--card);color:var(--accent-ink)}
 
-.urgent{background:var(--accent-soft);border-radius:20px;padding:20px 0 20px 18px;display:flex;flex-direction:column;gap:14px}
-.urgent-head{display:flex;flex-direction:column;gap:4px;padding-right:18px}
-.urgent-head .k{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--accent-ink)}
-.urgent-head p{font-size:14px;color:var(--muted)}
-.strip{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-right:18px;padding-bottom:4px;scrollbar-width:none}
-.strip::-webkit-scrollbar{display:none}
-.mini{flex:0 0 150px;scroll-snap-align:start;border:0;padding:0;background:var(--card);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;text-align:left;display:flex;flex-direction:column}
-.mini img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
-.mini span{padding:8px 10px 10px;font-size:14px;font-weight:600;line-height:1.4}
+/* 画布 */
+.vp{position:fixed;inset:0;overflow:hidden;touch-action:none;cursor:grab}
+.vp.drag{cursor:grabbing}
+.world{position:absolute;left:0;top:0;transform-origin:0 0}
+.world svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.world path{fill:none;stroke:var(--line);stroke-width:2}
+.world path.hot{stroke:var(--accent);stroke-opacity:.55}
+.n{position:absolute;left:0;top:0;border:0;padding:0;text-align:left;cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none;-webkit-user-select:none}
+.n .more{flex:none;margin-left:auto;min-width:24px;height:24px;border-radius:12px;padding:0 6px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;background:var(--accent-soft);color:var(--accent-ink)}
+.n.open .more{background:var(--line);color:var(--muted)}
+.n-root{background:var(--ink);color:#fff;border-radius:16px;padding:0 14px;font-family:var(--serif);font-weight:800;font-size:16px;box-shadow:var(--shadow);cursor:default}
+.n-stage{background:var(--card);border-radius:14px;padding:0 8px;box-shadow:var(--shadow);font-weight:700}
+.n-stage .no{flex:none;width:26px;height:26px;border-radius:50%;background:var(--line);color:var(--ink);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.n-stage .lb{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+.n-stage .lb b{font-family:var(--serif);font-size:16px;white-space:nowrap}
+.n-stage .lb em{font-style:normal;font-size:11px;font-weight:400;color:var(--muted);white-space:nowrap}
+.n-stage.now{background:var(--accent);color:#fff}
+.n-stage.now .no{background:#fff;color:var(--accent-ink)}
+.n-stage.now .lb em{color:rgba(255,255,255,.85)}
+.n-stage.now .more{background:rgba(255,255,255,.25);color:#fff}
+.n-stage.avoid{background:var(--bad-soft)} .n-stage.avoid .no{background:var(--bad);color:#fff} .n-stage.avoid b{color:var(--bad)}
+.n-step{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:0 8px 0 10px;font-weight:700;font-size:14px;line-height:1.3}
+.n-step .sn{color:var(--accent-ink);font-weight:800}
+.n-step em{font-style:normal;font-weight:400;font-size:11px;color:var(--muted);white-space:nowrap}
+.n-step.gap em{color:var(--warn)}
+.n-item{background:var(--card);border-radius:12px;padding:6px 8px 6px 6px;box-shadow:var(--shadow);border-left:4px solid var(--line)}
+.n-item img,.n-item .ti{flex:none;width:46px;height:46px;border-radius:8px;object-fit:cover;background:var(--bg)}
+.n-item .ti{display:flex;align-items:center;justify-content:center;font-size:20px}
+.n-item .tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.n-item b{font-size:13.5px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.n-item .meta{display:flex;gap:4px;align-items:center}
+.n-item.good{border-left-color:var(--good)} .n-item.warn{border-left-color:#E0A84A} .n-item.pref{border-left-color:#B9AFA4} .n-item.bad{border-left-color:var(--bad)}
+.n-todo{border:1.5px dashed var(--line);border-radius:12px;padding:6px 10px;font-size:12px;color:var(--muted);line-height:1.35;cursor:default;background:rgba(255,255,255,.6)}
+.chip{font-size:10.5px;font-weight:700;border-radius:5px;padding:0 6px;white-space:nowrap;line-height:1.7}
+.c-good{background:var(--good-soft);color:var(--good)} .c-warn{background:var(--warn-soft);color:var(--warn)}
+.c-pref{background:var(--pref-soft);color:var(--pref)} .c-bad{background:var(--bad-soft);color:var(--bad)}
+.c-hot{background:var(--accent-soft);color:var(--accent-ink)}
 
-.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-.sec-head small{color:var(--muted);font-size:13px}
-.stages{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:12px}
-.stage{position:relative;border:0;padding:0;border-radius:16px;overflow:hidden;cursor:pointer;background:var(--card);box-shadow:var(--shadow);text-align:left;display:flex;flex-direction:column}
-.stage img,.stage .ph{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
-.stage .ph{background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:30px;font-weight:800;color:var(--accent)}
-.stage .t{padding:10px 12px 12px;display:flex;flex-direction:column;gap:2px}
-.stage b{font-family:var(--serif);font-size:18px}
-.stage em{font-style:normal;font-size:13px;color:var(--muted)}
-.badge{position:absolute;top:8px;left:8px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--accent);color:#fff}
-.stage.avoid{background:var(--bad-soft)}.stage.avoid b{color:var(--bad)}
+/* 右下角控制 */
+.ctl{position:fixed;z-index:5;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.ctl .row{display:flex;gap:8px}
+.ctl button{border:0;background:var(--card);box-shadow:var(--shadow);border-radius:999px;height:42px;min-width:42px;padding:0 14px;font-size:14px;font-weight:700;color:var(--accent-ink);cursor:pointer}
+.ctl button.sq{padding:0;font-size:20px}
+.hint{position:fixed;z-index:5;left:50%;transform:translateX(-50%);top:calc(64px + env(safe-area-inset-top,0px));background:var(--ink);color:#fff;font-size:13px;padding:8px 14px;border-radius:999px;white-space:nowrap;transition:opacity .4s;pointer-events:none}
 
-.back{align-self:flex-start;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px 6px 10px;cursor:pointer;font-size:14px;color:var(--accent-ink)}
-.page-head{display:flex;flex-direction:column;gap:6px}
-.page-head p{color:var(--muted);font-size:15px}
-
-/* 骨架目录 */
-.tree{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:14px 16px;display:flex;flex-direction:column;gap:2px}
-.tree .lab{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
-.tree button{border:0;background:none;padding:7px 0;display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer;border-top:1px dashed var(--line)}
-.tree button:first-of-type{border-top:0}
-.num{flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
-.tree .nm{flex:1;font-weight:600}
-.tree .ct{font-size:13px;color:var(--muted)}
-.tree .ct.gap{color:var(--warn)}
-
-.branch{display:flex;flex-direction:column;gap:12px;scroll-margin-top:16px}
-.bhead{display:flex;align-items:center;gap:10px}
-.bdesc{color:var(--muted);font-size:14px;margin-top:-6px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:12px}
-.card{border:0;padding:0;background:var(--card);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;text-align:left;display:flex;flex-direction:column;position:relative}
-.card img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
-.card .t{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px}
-.card b{font-size:15px;line-height:1.4}
-.flash{position:absolute;top:8px;left:8px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--accent);color:#fff}
-.tlist{display:flex;flex-direction:column;gap:8px}
-.titem{border:0;background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;display:flex;flex-direction:column;gap:4px;text-align:left;cursor:pointer}
-.titem .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.titem b{font-size:15px}
-.titem p{font-size:14px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.todo{border:1.5px dashed var(--line);border-radius:14px;padding:10px 14px;font-size:14px;color:var(--muted);display:flex;gap:8px}
-.todo i{font-style:normal;flex:none}
-
-.chip{align-self:flex-start;font-size:12px;font-weight:700;border-radius:6px;padding:1px 8px;white-space:nowrap}
-.good{background:var(--good-soft);color:var(--good)} .warn{background:var(--warn-soft);color:var(--warn)}
-.bad{background:var(--bad-soft);color:var(--bad)} .pref{background:var(--pref-soft);color:var(--pref)}
-.law{background:var(--accent-soft);color:var(--accent-ink)}
-.legend{display:flex;flex-wrap:wrap;gap:8px 12px;font-size:13px;color:var(--muted);align-items:center}
-footer{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
-footer a{color:var(--accent-ink)}
-
+/* 弹出层 */
 .sheet-bg{position:fixed;inset:0;background:rgba(30,20,10,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20;padding-top:env(safe-area-inset-top,0px)}
-.sheet{background:var(--card);width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border-radius:20px 20px 0 0;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet{position:relative;background:var(--card);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;border-radius:20px 20px 0 0;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (min-width:700px){.sheet-bg{align-items:center}.sheet{border-radius:20px}}
-.sheet img{width:100%;aspect-ratio:6/5;object-fit:cover;display:block}
+.sheet>img{width:100%;aspect-ratio:6/5;object-fit:cover;display:block}
 .sheet .body{padding:18px 20px 24px;display:flex;flex-direction:column;gap:12px}
-.sheet h3{font-size:22px}
+.sheet h3{font-size:22px;font-weight:800}
 .sheet .tags{display:flex;gap:8px;flex-wrap:wrap}
 .sheet .tags .chip{font-size:13px;padding:2px 10px}
 .blk{display:flex;flex-direction:column;gap:2px}
-.blk .lb{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
-.blk p{font-size:16px}
+.blk .lbl{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
+.blk p{margin:0;font-size:16px}
 .blk.note{background:var(--bg);border-radius:12px;padding:10px 12px}
-.blk.note .lb{color:var(--accent-ink)}
-.sheet .src{font-size:13px;color:var(--muted)}
-.close{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));width:40px;height:40px;border-radius:50%;border:0;background:var(--card);box-shadow:var(--shadow);font-size:22px;line-height:1;cursor:pointer}
+.blk.note .lbl{color:var(--accent-ink)}
+.sheet .src{margin:0;font-size:13px;color:var(--muted)}
+.sheet .crumb{font-size:12px;color:var(--muted)}
+.x{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;border:0;background:var(--card);box-shadow:var(--shadow);font-size:22px;line-height:1;cursor:pointer;z-index:2}
+.minis{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.mini{border:0;padding:0;background:var(--bg);border-radius:12px;overflow:hidden;text-align:left;cursor:pointer;display:flex;flex-direction:column}
+.mini img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.mini span{padding:6px 8px 8px;font-size:13px;font-weight:600;line-height:1.35}
+.legend{display:flex;flex-direction:column;gap:6px;font-size:14px}
+.sheet a{color:var(--accent-ink)}
+.sheet ol{margin:0;padding-left:20px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(24px)}to{transform:none}}}
 </style>
 </head><body>
 
-<div class="wrap" id="app"></div>
+<div class="vp" id="vp"><div class="world" id="world"><svg id="links"></svg></div></div>
+<header class="bar">
+  <h1>昆山新家装修参考<small id="upd"></small></h1>
+  <button class="pill hot" id="btn-hot">⚡ 最要紧</button>
+  <button class="pill plain" id="btn-info">说明</button>
+</header>
+<div class="ctl">
+  <div class="row"><button class="sq" id="zo" aria-label="缩小">−</button><button class="sq" id="zi" aria-label="放大">＋</button></div>
+  <div class="row"><button id="fit">看全部</button><button id="now">回到现在</button></div>
+</div>
+<div class="hint" id="hint">点圆角块展开 · 拖动看 · 双指缩放</div>
 <div id="modal" hidden></div>
 
 <script type="application/json" id="data">/*DATA_START*/{"updated": "11 月 18 日", "now": "shuidian", "src": {"1": {"n": "sasa的装修日记", "p": "小红书", "u": "https://www.xiaohongshu.com/explore/6ae29358000000003003fe64?xsec_token=CBAMfBL4WtJoxtGnk6Nzhu99MrTtWqSsIsZTq1e1rEVT8=&xsec_source=app_share"}, "2": {"n": "小水的装修日记", "p": "小红书", "u": "https://www.xiaohongshu.com/explore/6ae3119a000000002c002dfd?xsec_token=CBx2mo4axgFeslmeVuwwLVIL8s7buo-LfUkX5TDFQnyEU=&xsec_source=app_share"}, "3": {"n": "梁工不爱装修《贴砖前必须确定这几件事》", "p": "公众号", "u": "https://mp.weixin.qq.com/s/LIRj5zN6yxnSxYL2NbdGlg"}, "4": {"n": "《水电改造没盯紧，入住后全是不方便》", "p": "公众号", "u": "https://mp.weixin.qq.com/s/-5NToXP4iCmWYv0Ww8kzDA"}, "5": {"n": "《装修合同这三句话必须删掉》", "p": "公众号", "u": "https://mp.weixin.qq.com/s/z1jhD-vh-ci3AILo7kdPew"}, "6": {"n": "狐说家装《装修施工增项防坑清单》", "p": "公众号", "u": "https://mp.weixin.qq.com/s/AIt_aKII816n5Hc4k4LFIg"}, "7": {"n": "《封阳台玻璃别乱选》", "p": "公众号", "u": "https://mp.weixin.qq.com/s/hsT6V_vDLHR7c5gF6iHfqA"}, "8": {"n": "《全屋WiFi怎么做》", "p": "公众号", "u": "https://mp.weixin.qq.com/s/KlI5IV4xiZJjjRjYZHkfig"}, "9": {"n": "《水电验收14大核心标准》", "p": "公众号", "u": "https://mp.weixin.qq.com/s/UfxN_sS9N9O1nfyLhoZxqg"}, "10": {"n": "《厨房、卫生间防水施工流程》", "p": "公众号", "u": "https://mp.weixin.qq.com/s/mauvBvETv5YebUIuIv5t0w"}, "11": {"n": "《家里这4个地方不装止逆阀》", "p": "公众号", "u": "https://mp.weixin.qq.com/s/p7nPQOwMHy9KNx47tvLY2A"}, "12": {"n": "装修智商税粉碎机《这18件家电，开工前必须定方案》", "p": "公众号", "u": "https://mp.weixin.qq.com/s/mTss4Aq5vKnORxCdKac3fg"}, "13": {"n": "《水电隐蔽工程这8张照片》", "p": "公众号", "u": "https://mp.weixin.qq.com/s/JdVb0VuJI63UTLdyCUcnFw"}}, "stages": [{"id": "qianqi", "name": "前期", "desc": "开工前：量房设计、预算、签合同", "branches": [{"id": "sheji", "name": "设计和量房", "desc": "先把房子量准、把布局和家电定下来", "todo": ["量房，拿到准确尺寸", "定平面布局和走动路线", "列家电和设备清单，定型号尺寸（水电要按它留位置）"]}, {"id": "yusuan", "name": "预算", "desc": "钱怎么分、留多少余量", "todo": ["按项目列预算，留一部分余量应对增项"]}, {"id": "hetong", "name": "合同", "desc": "写死了才不会被加钱", "todo": []}], "cover": "contract"}, {"id": "chaigai", "name": "拆改", "desc": "拆墙、砌墙、改门洞", "branches": [{"id": "chai", "name": "拆墙砌墙", "desc": "动结构前先问清楚", "todo": ["承重墙、剪力墙不能拆；拆改前问物业、按要求报备", "新砌墙和老墙接缝处挂网，防开裂", "垃圾清运谁负责、清几次，写进合同"]}], "cover": null}, {"id": "shuidian", "name": "水电", "desc": "水管电线埋进墙里地下，定错了只能砸墙", "branches": [{"id": "guihua", "name": "规划点位", "desc": "开工前定好每个点位，家电先定型号", "todo": []}, {"id": "dianlu", "name": "电路", "desc": "回路怎么分、怎么保证安全", "todo": []}, {"id": "jishui", "name": "给排水", "desc": "水管怎么走、出水口怎么留", "todo": ["冷水管走顶或经过吊顶时包保温，防夏天结露滴水"]}, {"id": "gongyi", "name": "施工工艺", "desc": "材料和做法", "todo": []}, {"id": "yanshou", "name": "验收和留档", "desc": "封槽前查清楚、拍下来", "todo": []}], "cover": "dock"}, {"id": "niwa", "name": "泥瓦", "desc": "做防水、铺地面、贴瓷砖", "branches": [{"id": "fangshui", "name": "防水", "desc": "卫生间、厨房、阳台不能漏", "todo": ["防水做完先验收再贴砖"]}, {"id": "dimian", "name": "地面", "desc": "平整、找坡、地漏", "todo": []}, {"id": "tiezhuan", "name": "贴砖", "desc": "牢不牢、好不好看", "todo": []}], "cover": "bishui"}, {"id": "mugong", "name": "木工", "desc": "吊顶和定制柜", "branches": [{"id": "diaoding", "name": "吊顶", "desc": "封板前把里面的事做完", "todo": ["封吊顶前：排风口、烟道该装的先装好，留好检修口"]}, {"id": "guizi", "name": "柜子", "desc": "好用、好打理", "todo": []}], "cover": "simple-ceiling"}, {"id": "youqi", "name": "油漆", "desc": "墙面找平、刷漆", "branches": [{"id": "jiceng", "name": "基层", "desc": "墙平不平、会不会裂", "todo": []}, {"id": "mianqi", "name": "面漆", "desc": "颜色和效果", "todo": []}], "cover": "paint"}, {"id": "anzhuang", "name": "安装", "desc": "门窗、洁具、灯具、地板踢脚线", "branches": [{"id": "menchuang", "name": "门窗阳台", "desc": "密封、玻璃、配件", "todo": []}, {"id": "shoukou", "name": "收口", "desc": "踢脚线、压条", "todo": []}, {"id": "jieju", "name": "洁具灯具", "desc": "安装和费用", "todo": ["洁具、灯具装好后逐个试用：出水、排水、亮灯、开关"]}], "cover": "glass"}, {"id": "ruanzhuang", "name": "家电软装", "desc": "家电进场、窗帘、家具", "branches": [{"id": "jiaju", "name": "家具", "desc": "尺寸和摆放", "todo": []}, {"id": "chuanglian", "name": "窗帘", "desc": "尺寸和做法", "todo": []}, {"id": "jiadian", "name": "家电", "desc": "按水电时定好的型号买", "todo": ["家电按「水电 · 规划点位」里定好的型号和尺寸买"]}], "cover": "curtain"}, {"id": "shouwei", "name": "收尾入住", "desc": "验收、保洁、通风", "branches": [{"id": "jungong", "name": "竣工验收", "desc": "全屋查一遍再付尾款", "todo": ["全屋验收：门窗开关、水电、瓷砖空鼓、墙面平整", "拿到水电走向图和保修条款"]}, {"id": "kongqi", "name": "空气", "desc": "住进去之前", "todo": ["充分通风；入住前可以做室内空气检测（国家标准 GB/T 18883-2022），合格再住"]}], "cover": null}], "avoid": {"id": "avoid", "name": "先别照做", "desc": "网上流行，但说法有问题", "branches": [{"id": "all", "name": "", "desc": "", "todo": []}]}, "items": [{"id": "contract", "s": "qianqi", "b": "hetong", "img": "contract", "t": "这 3 句话要删掉", "tag": "good", "key": 2, "src": [5, 6], "say": "合同里的「按实结算」「同档次品牌」「工期顺延」都给对方留了余地。签字前划掉，改成总价包干、写死品牌型号规格、写明延期怎么赔。", "note": "总价包干的报价可能会高一点；拆开后才发现的老房问题仍可能加钱，提前约定增项要书面签字、写明单价。", "law": ""}, {"id": "weikuan", "s": "qianqi", "b": "hetong", "img": null, "t": "尾款留一部分", "tag": "warn", "key": 0, "src": [6], "say": "文章建议留 5% 尾款，入住 3 个月后再付。", "note": "比例和时间双方商量，写进合同。", "law": ""}, {"id": "louxiang", "s": "qianqi", "b": "hetong", "img": null, "t": "常见漏项写进合同", "tag": "warn", "key": 0, "src": [6], "say": "垃圾清运、开孔、灯具和面板安装、上楼搬运、施工保护、完工保洁、窗台石门槛石，签约前问清是否包含。", "note": "这份清单来自一篇讲增项的文章，有些项目各家本来就包含，逐项问清即可。", "law": ""}, {"id": "socket", "s": "shuidian", "b": "guihua", "img": "fridge", "t": "插座别藏在家电后面", "tag": "good", "key": 2, "src": [4, 12], "say": "冰箱、洗碗机、洗衣机、电视的插座留在旁边柜子或上下方；每个房间要几个插座、多高，自己先列清单。", "note": "前提是家电型号和家具位置先定好。沙发、柜子会挡住后面的插座。", "law": ""}, {"id": "kaiguan", "s": "shuidian", "b": "guihua", "img": null, "t": "开关插座自己列清单", "tag": "good", "key": 0, "src": [4, 6], "say": "每个房间的开关插座数量和高度自己列好；卧室门口和床头做双控。", "note": "点位图写进合同，后期加点位不容易被高价收钱。", "law": ""}, {"id": "heater", "s": "shuidian", "b": "guihua", "img": "heater", "t": "热水器先定方案", "tag": "warn", "key": 2, "src": [12, 4], "say": "燃气还是电、明装还是藏进柜子、要不要零冷水，都要在水电前定。", "note": "零冷水开龙头就有热水，但要多埋回水管或加循环，会多用一点燃气和电（推断）。燃气热水器要先打排烟孔。", "law": ""}, {"id": "tv", "s": "shuidian", "b": "guihua", "img": "tv", "t": "电视墙埋一根管", "tag": "good", "key": 2, "src": [4, 12], "say": "电视后面预埋一根粗管走线，插座留在左右下方。", "note": "先定电视挂墙还是放柜子、多大。文章给的参考：55 寸大约坐 1.9–3.1 m 远。", "law": ""}, {"id": "wifi", "s": "shuidian", "b": "guihua", "img": "wifi", "t": "全屋 WiFi 先布网线", "tag": "good", "key": 2, "src": [4, 8, 12], "say": "弱电箱做大；弱电箱到客厅布 3 根网线，到每个房间各 1 根；用超六类网线。", "note": "根数是文章的建议，按自家房间数调整。墙上的 WiFi 面板会发热，选大牌（[8] 说的）。", "law": ""}, {"id": "aircon", "s": "shuidian", "b": "guihua", "img": "aircon", "t": "空调先定类型", "tag": "good", "key": 1, "src": [4, 12], "say": "挂机、柜机、风管机还是中央空调先定；风管机和中央空调要配合吊顶，还要留冷凝水排水管。", "note": "出风口别对着床和沙发。", "law": ""}, {"id": "dishwasher", "s": "shuidian", "b": "guihua", "img": "dishwasher", "t": "洗碗机留水电", "tag": "good", "key": 1, "src": [2, 4, 12], "say": "放在水槽旁边，留进水、排水，插座留在隔壁柜。", "note": "先定嵌入式还是台式、多宽，柜子按机器尺寸做。", "law": ""}, {"id": "oven", "s": "shuidian", "b": "guihua", "img": "oven", "t": "蒸烤箱留专用电", "tag": "good", "key": 1, "src": [2, 4, 12], "say": "功率大，单独一路电；插座在上方或下方；柜子背后少做背板，方便散热。", "note": "先查机器要 10A 还是 16A 插座。", "law": ""}, {"id": "washer", "s": "shuidian", "b": "guihua", "img": "washer", "t": "洗衣机 + 烘干机", "tag": "good", "key": 1, "src": [2, 4, 12], "say": "先定叠放还是并排、上排水还是下排水，再留插座、上下水和地漏。", "note": "昆山梅雨季衣服难晾干，烘干机比较实用（推断）。想加一台洗内衣的小洗衣机，就一起留位置。", "law": ""}, {"id": "water", "s": "shuidian", "b": "guihua", "img": "water", "t": "净水和直饮机", "tag": "warn", "key": 1, "src": [2, 4, 12, 13], "say": "前置过滤、净水机、软水机、直饮机，选哪几样先定，水槽下留插座和水口。", "note": "装不装、装几样看预算和当地水质，不是必须（推断）。", "law": ""}, {"id": "toilet", "s": "shuidian", "b": "guihua", "img": "toilet", "t": "智能马桶留插座", "tag": "good", "key": 1, "src": [4, 12], "say": "马桶侧边离地约 30 cm 留一个防水插座。", "note": "壁挂马桶还要让水电工、瓦工、商家对齐尺寸。", "law": ""}, {"id": "towel", "s": "shuidian", "b": "guihua", "img": "towel", "t": "电热毛巾架留电", "tag": "warn", "key": 1, "src": [4, 12], "say": "卫生间墙上预留电源。", "note": "[4] 说要单独一路线；功率小的型号接卫生间插座回路也常见（推断），按产品说明来。", "law": ""}, {"id": "dock", "s": "shuidian", "b": "guihua", "img": "dock", "t": "扫地机留水电位", "tag": "warn", "key": 1, "src": [2, 4, 12], "say": "上下水款基站要留进水、排水和电源，高度要卡准。", "note": "先选好买哪款再留。也有人觉得扫地机拖不干净，见「先别照做」。", "law": ""}, {"id": "dengwei", "s": "shuidian", "b": "guihua", "img": null, "t": "灯位改到中间", "tag": "warn", "key": 0, "src": [9], "say": "开发商的灯位不居中就改：餐厅对着餐桌，卧室对着做完柜子以后的中间。", "note": "要先定家具位置。", "law": ""}, {"id": "circuit", "s": "shuidian", "b": "dianlu", "img": "circuit", "t": "大功率电器单独一路", "tag": "good", "key": 2, "src": [4, 9, 12], "say": "空调、蒸烤箱、电热水器各走一路电；大功率用 4 平方线，普通插座用 2.5 平方。", "note": "具体线径按电器功率，由电工设计。", "law": ""}, {"id": "loubao", "s": "shuidian", "b": "dianlu", "img": null, "t": "插座回路装漏电保护", "tag": "good", "key": 0, "src": [], "say": "除壁挂空调的插座外，插座回路都要装漏电保护；卫生间插座最好单独一路。", "note": "文章都没提，是我查规范补上的。电箱里看得到，验收时问电工。", "law": "住宅设计规范 GB 50096-2011 第 8.7.2 条"}, {"id": "wire-sep", "s": "shuidian", "b": "dianlu", "img": "wire-sep", "t": "强电弱电分开走", "tag": "good", "key": 1, "src": [4, 9], "say": "电线和网线不走同一个槽，隔开一段距离，交叉处垂直交叉。", "note": "文章说隔 30 cm。旧版布线规范（GB 50311-2007）对普通家用电线的要求大约是平行隔 13 cm，30 cm 更保守，做得到更好；新版的数字我没查到。锡箔纸见「先别照做」。", "law": ""}, {"id": "dengdianwei", "s": "shuidian", "b": "dianlu", "img": null, "t": "卫生间做等电位", "tag": "good", "key": 0, "src": [4], "say": "有洗浴设备的卫生间要做局部等电位，别为了好看封死。", "note": "规范要求的，关系到用电安全。", "law": "住宅设计规范 GB 50096-2011 第 8.7.2 条"}, {"id": "wallpipe", "s": "shuidian", "b": "jishui", "img": "wallpipe", "t": "洗脸盆下水走墙里", "tag": "good", "key": 2, "src": [2, 13], "say": "下水从墙里出，盆下面空着，好打扫。", "note": "要在水电时预埋，台盆和下水器要买墙排款；以后想改只能砸墙。", "law": ""}, {"id": "pipe-top", "s": "shuidian", "b": "jishui", "img": "pipe-top", "t": "水管走顶还是走地", "tag": "warn", "key": 2, "src": [4], "say": "[4] 说卫生间水管必须走顶：漏水能第一时间看到，修的时候不用砸砖。", "note": "走顶管子更长，热水要多等一会儿；冷水管要包保温防结露。走地只要打压合格、接头少也可以。两种都行，水电前定下来（推断）。", "law": ""}, {"id": "hotcold", "s": "shuidian", "b": "jishui", "img": "hotcold", "t": "冷热水口左热右冷", "tag": "good", "key": 0, "src": [4, 9, 13], "say": "两个出水口间距 15 cm，保持水平，左热右冷。", "note": "龙头和花洒装不上，多半是这里没做准。", "law": ""}, {"id": "valve", "s": "shuidian", "b": "jishui", "img": "valve", "t": "止逆阀先看有没有", "tag": "warn", "key": 1, "src": [11], "say": "[11] 说马桶进水、厨房烟道、卫生间排风口要装止逆阀，洗衣机换自动止水角阀。", "note": "住宅规范本来就要求公共烟道防倒灌（GB 50096 第 6.8.2 条），很多马桶进水阀也自带防倒流设计，先看家里有没有再买（推断）。烟道和排风口的要在吊顶前装。", "law": ""}, {"id": "geyin", "s": "shuidian", "b": "jishui", "img": null, "t": "下水管包隔音棉", "tag": "good", "key": 0, "src": [4, 6], "say": "下水管包隔音棉，挡楼上冲水的声音。", "note": "包管的材料和做法写进报价。", "law": ""}, {"id": "vslot", "s": "shuidian", "b": "gongyi", "img": "vslot", "t": "墙上尽量开竖槽", "tag": "good", "key": 0, "src": [4, 9, 13], "say": "尽量开竖槽；横槽要短（文章说非混凝土墙不超过 50 cm、混凝土墙不超过 30 cm），承重墙不乱开。", "note": "具体限制以物业和结构要求为准。", "law": ""}, {"id": "cailiao", "s": "shuidian", "b": "gongyi", "img": null, "t": "电线水管网线选对", "tag": "good", "key": 0, "src": [9, 4], "say": "电线用 BV 单股硬线，给水用 PPR 管，网线用超六类（标 CAT6A）。品牌型号写进合同。", "note": "", "law": ""}, {"id": "chuanxian", "s": "shuidian", "b": "gongyi", "img": null, "t": "线管别塞太满", "tag": "warn", "key": 0, "src": [9], "say": "一根线管里的线别太多，转弯做大弧度，以后才能换线。", "note": "文章说不超过管截面的 40%。", "law": ""}, {"id": "xianhe", "s": "shuidian", "b": "gongyi", "img": null, "t": "改完电盖线盒保护盖", "tag": "warn", "key": 0, "src": [9], "say": "防止后面贴砖刷墙时，水泥堵住线盒。", "note": "", "law": ""}, {"id": "pressure", "s": "shuidian", "b": "yanshou", "img": "pressure", "t": "水管打压测试", "tag": "good", "key": 2, "src": [4, 13], "say": "加压到 0.8–1.0 MPa，30 分钟不掉压就合格。", "note": "规范更严：塑料水管在试验压力（工作压力的 1.5 倍，不低于 0.6 MPa）下稳压 1 小时，压降不超过 0.05 MPa；再在 1.15 倍工作压力下稳压 2 小时，压降不超过 0.03 MPa。让师傅按规范做，拍压力表留证。", "law": "给排水验收规范 GB 50242-2002 第 4.2.1 条"}, {"id": "photo-check", "s": "shuidian", "b": "yanshou", "img": "photo-check", "t": "封槽前每面墙拍照", "tag": "good", "key": 2, "src": [13, 4], "say": "每面墙、地面、每个底盒（旁边放卷尺）都拍下来，再录一段走一圈的视频；完工要一份水电走向图。", "note": "几乎零成本，以后打孔、维修、扯皮都用得上。", "law": ""}, {"id": "tongdian", "s": "shuidian", "b": "yanshou", "img": null, "t": "通电和绝缘测试", "tag": "good", "key": 0, "src": [4], "say": "每个插座都通电测一遍、测绝缘，贴砖前做。", "note": "", "law": ""}, {"id": "bishui", "s": "niwa", "b": "fangshui", "img": "bishui", "t": "防水和闭水试验", "tag": "good", "key": 1, "src": [4, 6, 10], "say": "防水刷两遍，淋浴区刷到 1.8 m，闭水 48 小时，去楼下看漏不漏。", "note": "规范要求：淋浴区墙面防水至少 2.0 m（不低于花洒），洗手盆处至少 1.2 m；蓄水至少 2 cm 深、至少 24 小时。文章的 1.8 m 是旧标准，按 2.0 m 做；闭水做到 48 小时更保险。", "law": "防水通用规范 GB 55030-2022 第 4.6.4、6.0.12 条"}, {"id": "tongpu", "s": "niwa", "b": "dimian", "img": "tongpu", "t": "全屋地面通铺", "tag": "warn", "key": 1, "src": [2, 3], "say": "不做门槛石和高低差，不藏灰，扫地机能过。", "note": "卫生间没了门槛石挡水，要靠地面下沉、找坡和长条地漏；规范要求用水房间和别的房间交接处要有挡水措施（GB 55030 第 4.6.4 条），问清师傅怎么做。", "law": ""}, {"id": "drain", "s": "niwa", "b": "dimian", "img": "drain", "t": "地漏和找坡", "tag": "good", "key": 0, "src": [3, 10], "say": "地面朝地漏找坡，地漏周围切成回字形；地漏别对着门口、别藏在柜子下面。", "note": "切法是工艺选择，关键是坡度做对、不积水。", "law": ""}, {"id": "rail", "s": "niwa", "b": "dimian", "img": "rail", "t": "推拉门不做地轨", "tag": "warn", "key": 0, "src": [2], "say": "地轨缝里藏灰，扫地机也过不去，可以用吊轨推拉门。", "note": "吊轨门底下有缝，隔音和稳定性差一些（推断）。", "law": ""}, {"id": "lamao", "s": "niwa", "b": "tiezhuan", "img": "lamao", "t": "贴砖前墙面拉毛", "tag": "good", "key": 0, "src": [1, 3], "say": "把墙面滚粗糙，瓷砖粘得牢。", "note": "大砖还要配瓷砖胶，拉毛不是唯一保证（推断）。", "law": ""}, {"id": "tiezhuan-xijie", "s": "niwa", "b": "tiezhuan", "img": null, "t": "贴砖的几个细节", "tag": "warn", "key": 0, "src": [3, 6], "say": "墙砖压地砖、墙地砖对缝、转角做海棠角、贴完逐块检查空鼓。", "note": "海棠角有的会按米另收倒角费（[6]），先写进报价。", "law": ""}, {"id": "simple-ceiling", "s": "mugong", "b": "diaoding", "img": "simple-ceiling", "t": "吊顶少做造型", "tag": "pref", "key": 0, "src": [2], "say": "不做线条和雕花，凹凸少就不积灰。", "note": "看你们喜欢的风格。", "law": ""}, {"id": "chuanglianhe", "s": "mugong", "b": "diaoding", "img": null, "t": "窗帘盒一起报价", "tag": "warn", "key": 0, "src": [6], "say": "做吊顶时把窗帘盒一起算进去，后期加要按米收钱。", "note": "", "law": ""}, {"id": "plain-cab", "s": "mugong", "b": "guizi", "img": "plain-cab", "t": "柜门全封闭", "tag": "pref", "key": 0, "src": [2], "say": "不做开放格、不用玻璃门，柜子不积灰。", "note": "想摆东西展示的地方，可以留一两格。", "law": ""}, {"id": "counter", "s": "mugong", "b": "guizi", "img": "counter", "t": "厨房台面清空", "tag": "pref", "key": 0, "src": [2], "say": "东西都收进柜子，做完饭一擦就干净。", "note": "前提是柜子收纳够用。", "law": ""}, {"id": "basket", "s": "mugong", "b": "guizi", "img": "basket", "t": "调料放抽屉拉篮", "tag": "pref", "key": 0, "src": [2], "say": "常用的放灶台下的抽屉，不常用的放吊柜拉篮。", "note": "", "law": ""}, {"id": "wardrobe", "s": "mugong", "b": "guizi", "img": "wardrobe", "t": "衣柜全做挂衣", "tag": "pref", "key": 0, "src": [2], "say": "衣服都挂起来，不用叠，一眼看到。", "note": "挂着比叠着占地方，衣柜要够大。", "law": ""}, {"id": "wujin", "s": "mugong", "b": "guizi", "img": null, "t": "柜子五金写品牌", "tag": "warn", "key": 0, "src": [6], "say": "铰链、滑轨写明品牌型号，防止后期说要升级加价。", "note": "", "law": ""}, {"id": "zhaoping", "s": "youqi", "b": "jiceng", "img": null, "t": "墙面找平写进报价", "tag": "warn", "key": 0, "src": [6], "say": "墙面找平、挂网是否包含要写清，有的报价只含腻子，找平另收钱。", "note": "", "law": ""}, {"id": "paint", "s": "youqi", "b": "mianqi", "img": "paint", "t": "乳胶漆先试一小块", "tag": "warn", "key": 0, "src": [1], "say": "色卡和刷上墙的颜色常常不一样，先刷一小块看。", "note": "几乎没成本，建议做。", "law": ""}, {"id": "tiaose", "s": "youqi", "b": "mianqi", "img": null, "t": "调色费问清楚", "tag": "warn", "key": 0, "src": [6], "say": "调色、多种颜色是否另收费，写进合同。", "note": "", "law": ""}, {"id": "glass", "s": "anzhuang", "b": "menchuang", "img": "glass", "t": "阳台玻璃怎么选", "tag": "warn", "key": 0, "src": [7], "say": "普通家庭选合格的中空玻璃就够；西晒的窗才值得加 Low-e；落地大窗用夹胶或超白。", "note": "只有 1 篇，偏商家科普。昆山冬天不算冷，三玻两腔一般用不上；临马路的再看隔音（推断）。", "law": ""}, {"id": "slope", "s": "anzhuang", "b": "menchuang", "img": "slope", "t": "窗外防水斜坡", "tag": "warn", "key": 0, "src": [1], "say": "封窗时在窗外打胶做斜坡，雨水顺着流走。", "note": "评论区说金属的下雨吵、胶缝老了会积水；要实心的、用螺丝固定（推断）。", "law": ""}, {"id": "auto-window", "s": "anzhuang", "b": "menchuang", "img": "auto-window", "t": "自动开窗器", "tag": "pref", "key": 1, "src": [2], "say": "下雨天自动关窗。", "note": "窗边要在水电时留插座；先问清窗户能不能装。", "law": ""}, {"id": "mifeng", "s": "anzhuang", "b": "menchuang", "img": null, "t": "窗框防水密封", "tag": "warn", "key": 0, "src": [6], "say": "装窗时打防水密封胶，写进合同。", "note": "", "law": ""}, {"id": "skirting", "s": "anzhuang", "b": "shoukou", "img": "skirting", "t": "超薄金属踢脚线", "tag": "pref", "key": 0, "src": [1], "say": "顶上窄，不积灰，好擦。", "note": "", "law": ""}, {"id": "anzhuangfei", "s": "anzhuang", "b": "jieju", "img": null, "t": "安装费是否包含", "tag": "warn", "key": 0, "src": [6], "say": "灯具、开关面板、角阀、热水器辅材的安装费，问清是否包含。", "note": "", "law": ""}, {"id": "floor-sit", "s": "ruanzhuang", "b": "jiaju", "img": "floor-sit", "t": "家具做到贴地", "tag": "pref", "key": 0, "src": [2], "say": "底下没有缝，不用钻进去扫。", "note": "", "law": ""}, {"id": "furn-lift", "s": "ruanzhuang", "b": "jiaju", "img": "furn-lift", "t": "或者离地 10 cm", "tag": "pref", "key": 0, "src": [2], "say": "扫地机能钻进去扫。", "note": "买扫地机前量一下机身多高。", "law": ""}, {"id": "shafa", "s": "ruanzhuang", "b": "jiaju", "img": null, "t": "大件先量楼道", "tag": "warn", "key": 0, "src": [6], "say": "沙发等大件先量电梯和楼道，写明送货入户。", "note": "", "law": ""}, {"id": "curtain", "s": "ruanzhuang", "b": "chuanglian", "img": "curtain", "t": "窗帘离地 10 cm", "tag": "pref", "key": 0, "src": [2, 6], "say": "窗帘离地一点，不拖地不脏；褶皱做 1.8–2 倍。", "note": "离地的做法有人不喜欢，看效果选。", "law": ""}, {"id": "window-bot", "s": "ruanzhuang", "b": "jiadian", "img": "window-bot", "t": "擦窗机器人", "tag": "pref", "key": 0, "src": [2], "say": "吸在玻璃上自己擦，不用请人擦窗。", "note": "", "law": ""}, {"id": "foil", "s": "avoid", "b": "all", "img": "foil", "t": "包锡箔纸能提网速", "tag": "bad", "key": 0, "src": [1, 4, 9, 13], "say": "4 篇都说电线交叉处要包锡箔纸，有的说包了网速会变快。", "note": "锡箔纸不接地，起不了多少屏蔽作用；网线本身抗干扰。规范讲的是间距和接地的金属管，不是锡箔纸（推断）。包了无害，别指望提速。", "law": ""}, {"id": "ceiling", "s": "avoid", "b": "all", "img": "ceiling", "t": "吊顶塞棉防楼上吵", "tag": "bad", "key": 0, "src": [1], "say": "吊顶里塞隔音棉，挡楼上的噪音。", "note": "楼上的脚步声多从楼板和墙传下来，只塞吊顶效果有限（推断，评论区也多人质疑）。下水管包隔音棉是另一回事。", "law": ""}, {"id": "robot", "s": "avoid", "b": "all", "img": "rail", "t": "有扫地机就不用扫", "tag": "warn", "key": 0, "src": [2], "say": "[2] 整篇围着扫地机设计。", "note": "评论区很多人说拖不干净、要常维护；也有人觉得请保洁加吸尘器更省事。到买家电时再定。", "law": ""}]}/*DATA_END*/</script>
 <script>
 const RAW=document.getElementById("data").textContent, D=JSON.parse(RAW.slice(RAW.indexOf("{"),RAW.lastIndexOf("}")+1));
-const SRC=D.src, STAGES=D.stages, AVOID=D.avoid, ITEMS=D.items, NOW=D.now;
+const SRC=D.src, ITEMS=D.items, NOW=D.now;
 const TAG={good:"推荐",warn:"看情况",pref:"看喜好",bad:"不建议"};
-const app=document.getElementById("app"), modal=document.getElementById("modal");
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const img=n=>`img/${n}.jpg`;
-const byStage=id=>ITEMS.filter(i=>i.s===id);
-const findStage=id=>id===AVOID.id?AVOID:STAGES.find(s=>s.id===id);
-const idx=i=>ITEMS.indexOf(i);
 const evid=i=>i.law?`依据规范：${i.law}`:i.src.length>1?`${i.src.length} 篇都这么说`:`只有 1 篇这么说`;
+document.getElementById("upd").textContent=`对照国家规范整理 · 更新于 ${D.updated}`;
 
-function home(){
-  const keys=ITEMS.filter(i=>i.key===2&&i.img);
-  app.innerHTML=`
-  <header class="hero">
-    <h1>昆山新家装修参考</h1>
-    <p class="sub">小年从小红书和公众号收集，对照国家规范整理 · 更新于 ${esc(D.updated)}</p>
-    <div class="steps" aria-label="装修进度">${STAGES.map(s=>`<div class="step ${s.id===NOW?"now":""}"><i></i>${esc(s.name.split("·")[0])}${s.id===NOW?" · 现在":""}</div>`).join("")}</div>
-  </header>
-  <section class="urgent">
-    <div class="urgent-head">
-      <span class="k">⚡ 现在最要紧</span>
-      <h2>水电阶段最要紧的 ${keys.length} 件事</h2>
-      <p>开工前要定好、施工时要盯着，错过了就得砸墙。左右滑动，点开看图。各阶段里标 ⚡ 的也要在水电前定。</p>
-    </div>
-    <div class="strip">${keys.map(i=>`<button class="mini" data-i="${idx(i)}"><img src="${img(i.img)}" alt="" loading="lazy"><span>${esc(i.t)}</span></button>`).join("")}</div>
-  </section>
-  <section style="display:flex;flex-direction:column;gap:14px">
-    <div class="sec-head"><h2>按装修顺序看</h2><small>点进去看每一步</small></div>
-    <div class="stages">
-      ${STAGES.map(s=>{const n=byStage(s.id).length;return `<button class="stage" data-s="${s.id}">${s.id===NOW?'<span class="badge">进行中</span>':""}${s.cover?`<img src="${img(s.cover)}" alt="" loading="lazy">`:`<span class="ph">${esc(s.name[0])}</span>`}<span class="t"><b>${esc(s.name)}</b><em>${s.branches.length} 步 · ${n} 条</em></span></button>`}).join("")}
-      <button class="stage avoid" data-s="avoid"><img src="${img("foil")}" alt="" loading="lazy"><span class="t"><b>${AVOID.name}</b><em>${byStage("avoid").length} 条</em></span></button>
-    </div>
-  </section>
-  ${legend()}
-  ${foot()}`;
-}
-
-function legend(){return `<div class="legend"><span><span class="chip good">推荐</span> 有规范或多篇支持、代价小</span><span><span class="chip warn">看情况</span> 有代价或前提</span><span><span class="chip pref">看喜好</span> 风格和习惯</span><span><span class="chip bad">不建议</span> 说法有问题</span></div>`}
-
-function stagePage(id){
-  const s=findStage(id); if(!s){location.hash="";return}
-  const isAvoid=id==="avoid";
-  const br=s.branches.map((b,k)=>({...b,k,items:byStage(id).filter(i=>i.b===b.id)}));
-  app.innerHTML=`
-  <button class="back" data-back>‹ 返回首页</button>
-  <div class="page-head"><h1>${esc(s.name)}</h1><p>${esc(s.desc)}</p></div>
-  ${isAvoid?"":`<nav class="tree" aria-label="这一阶段分几步"><span class="lab">这一阶段分 ${br.length} 步</span>
-    ${br.map(b=>`<button data-go="b-${b.id}"><span class="num">${b.k+1}</span><span class="nm">${esc(b.name)}</span><span class="ct ${b.items.length?"":"gap"}">${b.items.length?b.items.length+" 条":"还没收集"}</span></button>`).join("")}</nav>`}
-  ${br.map(b=>{
-    const pics=b.items.filter(i=>i.img), txt=b.items.filter(i=>!i.img);
-    return `<section class="branch" id="b-${b.id}">
-      ${isAvoid?"":`<div class="bhead"><span class="num">${b.k+1}</span><h2>${esc(b.name)}</h2></div><p class="bdesc">${esc(b.desc)}</p>`}
-      ${pics.length?`<div class="grid">${pics.map(i=>`<button class="card" data-i="${idx(i)}">${i.key?'<span class="flash">⚡ 水电前定</span>':""}<img src="${img(i.img)}" alt="" loading="lazy"><span class="t"><b>${esc(i.t)}</b><span class="chip ${i.tag}">${TAG[i.tag]}</span></span></button>`).join("")}</div>`:""}
-      ${txt.length?`<div class="tlist">${txt.map(i=>`<button class="titem" data-i="${idx(i)}"><span class="row"><b>${esc(i.t)}</b><span class="chip ${i.tag}">${TAG[i.tag]}</span>${i.law?'<span class="chip law">规范</span>':""}</span><p>${esc(i.say)}</p></button>`).join("")}</div>`:""}
-      ${(b.todo||[]).map(t=>`<div class="todo"><i>☐</i><span>${esc(t)}</span></div>`).join("")}
-    </section>`}).join("")}
-  ${legend()}
-  ${foot()}`;
-  window.scrollTo(0,0);
-}
-
-function foot(){
-  return `<footer><p>内容整理自 ${Object.keys(SRC).length} 篇小红书和公众号，并对照国家规范核过关键数字：</p><p>${Object.values(SRC).map(x=>`<a href="${x.u}" target="_blank" rel="noopener">${esc(x.n)}</a>`).join("、")}</p><p>「推荐 / 看情况」是小年的判断，文章也会出错，具体做法以规范和施工师傅为准。</p></footer>`;
-}
-
-function open(n){
-  const i=ITEMS[n];
-  modal.hidden=false;
-  modal.innerHTML=`<div class="sheet-bg" data-close><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(i.t)}">
-    ${i.img?`<img src="${img(i.img)}" alt="">`:""}
-    <div class="body">
-      <div class="tags"><span class="chip ${i.tag}">${TAG[i.tag]}</span>${i.key?'<span class="chip law">⚡ 水电开工前要定</span>':""}</div>
-      <h3>${esc(i.t)}</h3>
-      <div class="blk"><span class="lb">${i.src.length?"文章说":"规范要求"}</span><p>${esc(i.say)}</p></div>
-      ${i.note?`<div class="blk note"><span class="lb">要注意</span><p>${esc(i.note)}</p></div>`:""}
-      <p class="src">${esc(evid(i))}${i.src.length?" · 来自 "+i.src.map(k=>esc(SRC[k].p+" · "+SRC[k].n)).join("、"):""}</p>
-    </div></div>
-    <button class="close" data-close aria-label="关闭">×</button></div>`;
-  document.body.style.overflow="hidden";
-  modal.querySelector(".close").focus();
-}
-function close(){modal.hidden=true;modal.innerHTML="";document.body.style.overflow=""}
-
-document.addEventListener("click",e=>{
-  const c=e.target.closest("[data-close]");
-  if(c&&(e.target===c||c.classList.contains("close"))){close();return}
-  const card=e.target.closest("[data-i]"); if(card){open(+card.dataset.i);return}
-  const go=e.target.closest("[data-go]"); if(go){document.getElementById(go.dataset.go)?.scrollIntoView({behavior:"smooth"});return}
-  const st=e.target.closest("[data-s]"); if(st){location.hash=st.dataset.s;return}
-  if(e.target.closest("[data-back]")){location.hash="";}
+/* ---------- 树 ---------- */
+const nodes=new Map();
+const mk=o=>(nodes.set(o.id,o),o);
+const root=mk({id:"root",kind:"root",children:[]});
+D.stages.forEach((s,k)=>{
+  const its=ITEMS.filter(i=>i.s===s.id);
+  const st=mk({id:"s-"+s.id,kind:"stage",num:k+1,stage:s,now:s.id===NOW,parent:root,children:[],count:its.length});
+  root.children.push(st);
+  s.branches.forEach((b,j)=>{
+    const bi=its.filter(i=>i.b===b.id);
+    const sp=mk({id:`b-${s.id}-${b.id}`,kind:"step",num:j+1,branch:b,parent:st,children:[],count:bi.length});
+    st.children.push(sp);
+    bi.forEach(i=>sp.children.push(mk({id:"i-"+i.id,kind:"item",item:i,parent:sp})));
+    (b.todo||[]).forEach((t,m)=>sp.children.push(mk({id:`t-${s.id}-${b.id}-${m}`,kind:"todo",text:t,parent:sp})));
+  });
 });
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!modal.hidden)close()});
-function route(){close();const h=location.hash.slice(1);h?stagePage(h):home()}
-window.addEventListener("hashchange",route);
-route();
+const av=mk({id:"s-avoid",kind:"stage",avoid:true,stage:D.avoid,parent:root,children:[],count:0});
+ITEMS.filter(i=>i.s==="avoid").forEach(i=>{av.children.push(mk({id:"i-"+i.id,kind:"item",item:i,parent:av}));av.count++});
+root.children.push(av);
+
+const W={root:132,stage:178,step:178,item:236,todo:236}, H={root:56,stage:54,step:46,item:60};
+const GX=34, GY=10;
+const open=new Set(["root"]); // 一打开只有最简单的一层：9 个阶段
+const hOf=n=>n.kind==="todo"?18+Math.ceil(n.text.length/16)*16:H[n.kind];
+const kidsOf=n=>open.has(n.id)?(n.children||[]):[];
+
+function layout(){
+  let cur=0; const out=[];
+  const shift=(n,d)=>{n.ty+=d;kidsOf(n).forEach(c=>shift(c,d))};
+  (function walk(n,x){
+    n.tx=x; out.push(n);
+    const kids=kidsOf(n);
+    if(kids.length){
+      const c0=cur; kids.forEach(c=>walk(c,x+W[n.kind]+GX));
+      const a=kids[0], b=kids[kids.length-1];
+      n.ty=((a.ty+hOf(a)/2)+(b.ty+hOf(b)/2))/2-hOf(n)/2;
+      if(n.ty<c0) shift(n,c0-n.ty);
+      cur=Math.max(cur,n.ty+hOf(n)+GY);
+    } else { n.ty=cur; cur+=hOf(n)+GY; }
+  })(root,0);
+  return out;
+}
+
+/* ---------- 画 ---------- */
+const world=document.getElementById("world"), svg=document.getElementById("links"), vp=document.getElementById("vp");
+const els=new Map(), paths=new Map(), pos=new Map();
+function nodeHTML(n){
+  if(n.kind==="root") return `昆山新家装修`;
+  if(n.kind==="stage"){
+    const s=n.stage, steps=n.avoid?"":`${s.branches.length} 步 · `;
+    return `<span class="no">${n.avoid?"!":n.num}</span><span class="lb"><b>${esc(s.name)}${n.now?"（现在）":""}</b><em>${steps}${n.count} 条</em></span><span class="more"></span>`;
+  }
+  if(n.kind==="step") return `<span><span class="sn">${n.num}</span> ${esc(n.branch.name)}<br><em>${n.count?n.count+" 条":"还没收集文章"}</em></span><span class="more"></span>`;
+  if(n.kind==="item"){const i=n.item;
+    return `${i.img?`<img src="${img(i.img)}" alt="" loading="lazy" draggable="false">`:`<span class="ti">${i.law?"📘":"📝"}</span>`}<span class="tx"><b>${esc(i.t)}</b><span class="meta"><span class="chip c-${i.tag}">${TAG[i.tag]}</span>${i.key?'<span class="chip c-hot">⚡</span>':""}</span></span>`}
+  return `☐ ${esc(n.text)}`;
+}
+function ensureEl(n){
+  let e=els.get(n.id); if(e) return e;
+  e=document.createElement(n.kind==="todo"||n.kind==="root"?"div":"button");
+  e.className=`n n-${n.kind}`+(n.now?" now":"")+(n.avoid?" avoid":"")+(n.kind==="item"?" "+n.item.tag:"")+(n.kind==="step"&&!n.count?" gap":"");
+  e.dataset.n=n.id; e.innerHTML=nodeHTML(n);
+  e.style.width=W[n.kind]+"px"; e.style.height=hOf(n)+"px";
+  world.appendChild(e); els.set(n.id,e); return e;
+}
+function updMore(n){
+  const el=els.get(n.id), m=el&&el.querySelector(".more"); if(!m) return;
+  const o=open.has(n.id); el.classList.toggle("open",o); m.textContent=o?"−":"+"+n.children.length;
+}
+const ease=t=>1-Math.pow(1-t,3);
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let anim=0;
+function render(camTarget){
+  const vis=layout(), visIds=new Set(vis.map(n=>n.id));
+  const from=new Map(), to=new Map();
+  vis.forEach(n=>{
+    const fresh=!els.has(n.id); ensureEl(n); updMore(n);
+    to.set(n.id,[n.tx,n.ty]);
+    let f=pos.get(n.id);
+    if(!f){const p=n.parent&&pos.get(n.parent.id); f=p?[p[0],p[1]]:[n.tx,n.ty];}
+    from.set(n.id,f); if(fresh) els.get(n.id).style.opacity=0;
+  });
+  const leaving=[...els.keys()].filter(id=>!visIds.has(id));
+  leaving.forEach(id=>{
+    let p=nodes.get(id).parent; while(p&&!visIds.has(p.id)) p=p.parent;
+    from.set(id,pos.get(id)||[0,0]); to.set(id,p?[p.tx,p.ty]:[0,0]);
+  });
+  [...from.keys()].forEach(id=>{const n=nodes.get(id); if(!n.parent||paths.has(id)) return;
+    const p=document.createElementNS("http://www.w3.org/2000/svg","path");
+    if(n.parent.now||(n.parent.parent&&n.parent.parent.now)) p.classList.add("hot");
+    svg.appendChild(p); paths.set(id,p);});
+  const cf={...cam}, ct=camTarget||{...cam};
+  const t0=performance.now(), dur=reduce?1:320, my=++anim;
+  (function frame(t){
+    if(my!==anim) return;
+    const k=Math.min(1,(t-t0)/dur), e=ease(k), cur=new Map();
+    to.forEach((b,id)=>{const a=from.get(id), x=a[0]+(b[0]-a[0])*e, y=a[1]+(b[1]-a[1])*e; cur.set(id,[x,y]);
+      const el=els.get(id); el.style.transform=`translate(${x}px,${y}px)`;
+      el.style.opacity=visIds.has(id)?Math.max(+el.style.opacity,e):1-e;});
+    paths.forEach((p,id)=>{const n=nodes.get(id), a=cur.get(n.parent.id), b=cur.get(id); if(!a||!b) return;
+      const x1=a[0]+W[n.parent.kind], y1=a[1]+hOf(n.parent)/2, x2=b[0], y2=b[1]+hOf(n)/2, mx=(x1+x2)/2;
+      p.setAttribute("d",`M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`); p.style.opacity=visIds.has(id)?1:1-e;});
+    if(camTarget){cam.x=cf.x+(ct.x-cf.x)*e;cam.y=cf.y+(ct.y-cf.y)*e;cam.k=cf.k+(ct.k-cf.k)*e;applyCam();}
+    if(k<1) return requestAnimationFrame(frame);
+    leaving.forEach(id=>{els.get(id).remove();els.delete(id);pos.delete(id);const p=paths.get(id);if(p){p.remove();paths.delete(id)}});
+    vis.forEach(n=>{pos.set(n.id,[n.tx,n.ty]);els.get(n.id).style.opacity=1});
+  })(t0);
+}
+
+/* ---------- 镜头 ---------- */
+const cam={x:12,y:80,k:1};
+const applyCam=()=>{world.style.transform=`translate(${cam.x}px,${cam.y}px) scale(${cam.k})`};
+const TOP=70, BOT=120, clampK=k=>Math.min(1.6,Math.max(.25,k));
+function bounds(list){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;list.forEach(n=>{x0=Math.min(x0,n.tx);y0=Math.min(y0,n.ty);x1=Math.max(x1,n.tx+W[n.kind]);y1=Math.max(y1,n.ty+hOf(n))});return{x0,y0,x1,y1}}
+function sub(n){const out=[];(function w(m){out.push(m);kidsOf(m).forEach(w)})(n);return out}
+// 展开后：让这个节点和它下面一层都进画面
+function camFor(n){
+  const vw=innerWidth, vh=innerHeight, b=bounds(sub(n));
+  let k=cam.k;
+  if((b.x1-b.x0+24)*k>vw-16) k=clampK(Math.max(.5,(vw-28)/(b.x1-b.x0+24)));
+  let x=cam.x, y=cam.y;
+  if(b.x1*k+x>vw-12) x=vw-12-b.x1*k;
+  if(b.x0*k+x<12) x=12-b.x0*k;
+  const h=(b.y1-b.y0)*k, avail=vh-TOP-BOT;
+  if(h<=avail){ if(b.y0*k+y<TOP) y=TOP-b.y0*k; else if(b.y1*k+y>vh-BOT) y=vh-BOT-b.y1*k; }
+  else y=TOP+12-Math.min(n.ty,b.y0)*k;
+  return {x,y,k};
+}
+function tweenCam(t){const f={...cam},t0=performance.now(),my=++anim;(function fr(now){if(my!==anim)return;const e=ease(Math.min(1,(now-t0)/(reduce?1:300)));cam.x=f.x+(t.x-f.x)*e;cam.y=f.y+(t.y-f.y)*e;cam.k=f.k+(t.k-f.k)*e;applyCam();if(e<1)requestAnimationFrame(fr)})(t0)}
+function zoomAt(f,px,py){const k=clampK(cam.k*f), r=k/cam.k; cam.x=px-(px-cam.x)*r; cam.y=py-(py-cam.y)*r; cam.k=k; applyCam()}
+function fitCam(){const b=bounds(layout()), vw=innerWidth, vh=innerHeight;
+  const k=clampK(Math.min(1.1,(vw-24)/(b.x1-b.x0),(vh-TOP-BOT)/(b.y1-b.y0)));
+  return {k,x:(vw-(b.x1-b.x0)*k)/2-b.x0*k,y:TOP+((vh-TOP-BOT)-(b.y1-b.y0)*k)/2-b.y0*k}}
+const fitAll=()=>tweenCam(fitCam());
+function nowCam(){const s=nodes.get("s-"+NOW); layout(); const b=bounds(sub(s)), vw=innerWidth;
+  const k=clampK(Math.min(1,(vw-20)/(b.x1+16))); return {k,x:10,y:TOP+10-Math.min(s.ty,b.y0)*k}}
+function goNow(){
+  const s=nodes.get("s-"+NOW);
+  root.children.forEach(c=>{if(c!==s) collapse(c)}); open.add(s.id);
+  render(nowCam());
+}
+const collapse=m=>{open.delete(m.id);(m.children||[]).forEach(collapse)};
+
+/* ---------- 手势 ---------- */
+const pts=new Map(); let moved=0, last=null, pinch=null;
+vp.addEventListener("pointerdown",e=>{pts.set(e.pointerId,[e.clientX,e.clientY]); if(pts.size===1) moved=0; last=[e.clientX,e.clientY];
+  if(pts.size===2){const [a,b]=[...pts.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1]),k:cam.k};moved=99} hideHint();});
+vp.addEventListener("pointermove",e=>{
+  if(!pts.has(e.pointerId)) return; pts.set(e.pointerId,[e.clientX,e.clientY]);
+  if(pts.size===2&&pinch){anim++;const [a,b]=[...pts.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);zoomAt((pinch.k*d/pinch.d)/cam.k,(a[0]+b[0])/2,(a[1]+b[1])/2);return}
+  if(pts.size!==1) return;
+  const dx=e.clientX-last[0], dy=e.clientY-last[1]; last=[e.clientX,e.clientY];
+  moved+=Math.abs(dx)+Math.abs(dy); if(moved>6){anim++;vp.classList.add("drag");cam.x+=dx;cam.y+=dy;applyCam()}
+});
+const up=e=>{pts.delete(e.pointerId); if(pts.size<2) pinch=null; if(!pts.size) vp.classList.remove("drag"); else last=[...pts.values()][0]};
+vp.addEventListener("pointerup",up); vp.addEventListener("pointercancel",up);
+vp.addEventListener("wheel",e=>{e.preventDefault(); hideHint(); anim++;
+  if(e.ctrlKey||e.metaKey) zoomAt(Math.exp(-e.deltaY*.01),e.clientX,e.clientY);
+  else {cam.x-=e.deltaX;cam.y-=e.deltaY;applyCam()}},{passive:false});
+vp.addEventListener("click",e=>{
+  if(moved>6) return;
+  const el=e.target.closest(".n"); if(!el) return; const n=nodes.get(el.dataset.n);
+  if(n.kind==="item"){openItem(n.item);return}
+  if(n.kind==="todo"||n.kind==="root") return;
+  if(open.has(n.id)){ collapse(n); render(); return; }
+  n.parent.children.forEach(sib=>{if(sib!==n) collapse(sib)}); // 同一层只开一个，图不会越拉越长
+  open.add(n.id); layout(); render(camFor(n));
+});
+document.getElementById("zi").onclick=()=>zoomAt(1.25,innerWidth/2,innerHeight/2);
+document.getElementById("zo").onclick=()=>zoomAt(.8,innerWidth/2,innerHeight/2);
+document.getElementById("fit").onclick=fitAll;
+document.getElementById("now").onclick=goNow;
+const hintT=setTimeout(hideHint,7000);
+function hideHint(){const h=document.getElementById("hint");if(h){h.style.opacity=0;setTimeout(()=>h.remove(),400)}clearTimeout(hintT)}
+
+/* ---------- 弹窗 ---------- */
+const modal=document.getElementById("modal");
+function sheet(html){modal.hidden=false;modal.innerHTML=`<div class="sheet-bg" data-close><div class="sheet" role="dialog" aria-modal="true"><button class="x" data-close aria-label="关闭">×</button>${html}</div></div>`;modal.querySelector(".x").focus()}
+function closeSheet(){modal.hidden=true;modal.innerHTML=""}
+modal.addEventListener("click",e=>{
+  const c=e.target.closest("[data-close]"); if(c&&(e.target===c||c.classList.contains("x"))){closeSheet();return}
+  const m=e.target.closest("[data-item]"); if(m) openItem(ITEMS.find(i=>i.id===m.dataset.item));
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!modal.hidden)closeSheet()});
+function openItem(i){
+  const st=i.s==="avoid"?D.avoid:D.stages.find(s=>s.id===i.s), br=st.branches.find(b=>b.id===i.b);
+  sheet(`${i.img?`<img src="${img(i.img)}" alt="">`:""}<div class="body">
+    <span class="crumb">${esc(st.name)}${br&&br.name?" › "+esc(br.name):""}</span>
+    <div class="tags"><span class="chip c-${i.tag}">${TAG[i.tag]}</span>${i.key?'<span class="chip c-hot">⚡ 水电开工前要定</span>':""}</div>
+    <h3>${esc(i.t)}</h3>
+    <div class="blk"><span class="lbl">${i.src.length?"文章说":"规范要求"}</span><p>${esc(i.say)}</p></div>
+    ${i.note?`<div class="blk note"><span class="lbl">要注意</span><p>${esc(i.note)}</p></div>`:""}
+    <p class="src">${esc(evid(i))}${i.src.length?" · 来自 "+i.src.map(k=>esc(SRC[k].p+" · "+SRC[k].n)).join("、"):""}</p></div>`);
+}
+document.getElementById("btn-hot").onclick=()=>{
+  const keys=ITEMS.filter(i=>i.key===2&&i.img);
+  sheet(`<div class="body"><h3>⚡ 水电阶段最要紧的 ${keys.length} 件事</h3><p class="src">开工前要定好、施工时要盯着，错过了就得砸墙。图上标 ⚡ 的也要在水电前定。</p>
+  <div class="minis">${keys.map(i=>`<button class="mini" data-item="${i.id}"><img src="${img(i.img)}" alt="" loading="lazy"><span>${esc(i.t)}</span></button>`).join("")}</div></div>`);
+};
+document.getElementById("btn-info").onclick=()=>{
+  sheet(`<div class="body"><h3>怎么看</h3>
+  <div class="legend">
+    <span>点圆角块展开，再点收起；拖动平移，双指或右下角 ＋ − 缩放。「看全部」看整张图，「回到现在」回到正在做的阶段。</span>
+    <span><span class="chip c-good">推荐</span> 有规范或多篇支持，代价小</span>
+    <span><span class="chip c-warn">看情况</span> 有代价或前提，要先确认</span>
+    <span><span class="chip c-pref">看喜好</span> 风格和生活习惯</span>
+    <span><span class="chip c-bad">不建议</span> 网上流行但说法有问题</span>
+    <span><span class="chip c-hot">⚡</span> 要在水电开工前定 · 📘 规范要求 · 📝 没配图的条目 · ☐ 还没收集到文章的步骤</span>
+  </div>
+  <p class="src">「推荐 / 看情况」是小年的判断。文章也会出错，关键数字对照过国家规范，具体做法以规范和施工师傅为准。</p>
+  <h3>内容来自</h3><ol>${Object.values(SRC).map(x=>`<li><a href="${x.u}" target="_blank" rel="noopener">${esc(x.p)} · ${esc(x.n)}</a></li>`).join("")}</ol></div>`);
+};
+
+/* ---------- 开场：整棵最简单的树放进屏幕 ---------- */
+Object.assign(cam,fitCam()); applyCam(); render();
+addEventListener("resize",applyCam);
 </script>
 
 </body></html>
